@@ -173,11 +173,11 @@
 <div class="wrap" id="main">
   <noscript><div style="max-width:860px;margin:12px auto;padding:12px 16px;background:#dff3ee;border-radius:8px;font-size:.9rem">本站收錄國中教育會考英語科（閱讀）115年試題共 43 題選擇題，依108課綱學習內容分三類（詞彙 Ba、句型文法 Bb、篇章閱讀 Bc，含克漏字），每題附心測中心官方通過率與詳解。本站需開啟 JavaScript 才能作答，請於瀏覽器啟用。</div></noscript>
   <div class="introbox no-print" id="introBox">
-    <b>這是什麼？</b>收錄國中教育會考英語科（閱讀）115 年歷屆試題（考古題）共 43 題，可依詞彙／句型文法／篇章閱讀（含克漏字）分類挑題，當場作答立刻看到對錯，每題附心測中心官方通過率與詳解。<br>
+    <b>這是什麼？</b>收錄國中教育會考英語科（閱讀）105～115 年歷屆試題（考古題）共 418 題，可依詞彙／句型文法／篇章閱讀（含克漏字）分類挑題，當場作答立刻看到對錯，每題附心測中心官方通過率與詳解。<br>
     <b>不需登入，不會上傳任何個人資料</b>——錯題本、學習歷程都只存在你這台裝置的瀏覽器裡，換一台電腦或清除瀏覽器資料就會歸零。
   </div>
   <div class="quickstart no-print">
-    <button class="btn btn-main" id="quickStartBtn">立即開始・全部 43 題</button>
+    <button class="btn btn-main" id="quickStartBtn">立即開始・全部 418 題</button>
     <p>不知道要練什麼？按這裡最快，不用任何設定。想加強特定類別，才需要往下設定篩選條件。</p>
   </div>
 
@@ -185,7 +185,7 @@
     <div class="toolrow"><h2 style="margin-bottom:0">選擇範圍</h2><span class="gtoggle" id="allToggle">全選／清除</span></div>
     <div id="catChips" class="chips"></div>
     <div class="row" style="border-top:1px dashed var(--line); padding-top:12px">
-      <label>題數：<input type="number" id="numInput" min="1" value="43" style="width:70px"></label>
+      <label>題數：<input type="number" id="numInput" min="1" value="418" style="width:70px"></label>
       <label><input type="checkbox" id="shuffleChk" checked> 隨機出題</label>
     </div>
     <div class="count" id="countInfo"></div>
@@ -224,6 +224,16 @@
   </div>
 </div>
 
+<script src="data/q105.js"></script>
+<script src="data/q106.js"></script>
+<script src="data/q107.js"></script>
+<script src="data/q108.js"></script>
+<script src="data/q109.js"></script>
+<script src="data/q110.js"></script>
+<script src="data/q111.js"></script>
+<script src="data/q112.js"></script>
+<script src="data/q113.js"></script>
+<script src="data/q114.js"></script>
 <script src="data/q115.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", ()=>{
@@ -354,7 +364,7 @@ function renderQ(q, idx){
     html += `<img class="qimg" src="${q.image}" alt="${alt.replace(/"/g,'&quot;')}" loading="lazy">`;
   }
   html += `<div class="opts" role="radiogroup">`+
-    Object.keys(q.options).map(k=>q.options[k]!==""?`<button type="button" class="opt" data-k="${k}"><span class="okey" aria-hidden="true">${k}</span><span class="otext">${q.options[k]}</span></button>`:"").join("")+
+    ["A","B","C","D"].map(k=>`<button type="button" class="opt" data-k="${k}"><span class="okey" aria-hidden="true">${k}</span><span class="otext">${q.options[k]||""}</span></button>`).join("")+
     `</div>`;
   div.innerHTML = html;
 

@@ -57,6 +57,12 @@
   .chip .cnt{font-size:.76rem; color:var(--muted)}
   .chip.on{background:var(--ink); color:#eafff9; border-color:transparent}
   .chip.on .cnt{color:#bfe6df}
+  .catgroup{margin-bottom:12px}
+  .catgroup .gtitle{display:flex; align-items:center; gap:10px; font-size:.85rem; color:var(--muted); margin-bottom:6px; flex-wrap:wrap}
+  .catgroup .gtitle b{color:var(--ink); font-size:.9rem}
+  .catgroup .cnt{font-size:.76rem; color:var(--muted)}
+  .catdot{width:10px; height:10px; border-radius:3px; display:inline-block; flex-shrink:0}
+  .expandToggle{margin-left:auto}
   .row{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:12px; font-size:.92rem}
   select,input[type=number]{font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:#eafaf7; font-size:16px}
   .btn{font:inherit; border:0; border-radius:4px 12px 4px 12px; padding:11px 22px; cursor:pointer; font-size:1rem;
@@ -126,6 +132,9 @@
   #wrongCount.hot{color:var(--bad); font-weight:700}
   .skiplink{position:absolute; left:-999px; top:0; background:var(--seal); color:#eafff9; padding:10px 16px; z-index:100; border-radius:0 0 8px 0}
   .skiplink:focus{left:0}
+  .checklink{position:fixed; top:calc(env(safe-area-inset-top,0px) + 10px); right:10px; z-index:60; font-size:.8rem; padding:5px 12px; border-radius:14px; background:rgba(15,118,110,.82); color:#eafff9; text-decoration:none; border:1px solid rgba(255,255,255,.2); opacity:.72; -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
+  .checklink:hover,.checklink:focus-visible{opacity:1}
+  @media print{ .checklink{display:none !important} }
   @media (max-width:480px){
     header h1{font-size:1.25rem}
     .wrap{padding:10px}
@@ -163,6 +172,7 @@
 <body>
 <a class="skiplink" href="#main">跳到主要內容</a>
 <div id="srLive" class="sr-only" aria-live="assertive"></div>
+<a class="checklink no-print" href="check.html" title="輸入年份-題號快速查題校對">🔍 查題校對</a>
 <header>
   <h1>英語閱讀練功房</h1>
   <p>國中教育會考英語科（閱讀）　歷屆試題分類練習</p>
@@ -173,11 +183,11 @@
 <div class="wrap" id="main">
   <noscript><div style="max-width:860px;margin:12px auto;padding:12px 16px;background:#dff3ee;border-radius:8px;font-size:.9rem">本站收錄國中教育會考英語科（閱讀）115年試題共 43 題選擇題，依108課綱學習內容分三類（詞彙 Ba、句型文法 Bb、篇章閱讀 Bc，含克漏字），每題附心測中心官方通過率與詳解。本站需開啟 JavaScript 才能作答，請於瀏覽器啟用。</div></noscript>
   <div class="introbox no-print" id="introBox">
-    <b>這是什麼？</b>收錄國中教育會考英語科（閱讀）105～115 年歷屆試題（考古題）共 418 題，可依詞彙／句型文法／篇章閱讀（含克漏字）分類挑題，當場作答立刻看到對錯，每題附心測中心官方通過率與詳解。<br>
+    <b>這是什麼？</b>收錄國中教育會考英語科（閱讀）105～115 年歷屆試題（考古題）共 461 題，可依詞彙／句型文法／篇章閱讀（含克漏字）分類挑題，當場作答立刻看到對錯，每題附心測中心官方通過率與詳解。<br>
     <b>不需登入，不會上傳任何個人資料</b>——錯題本、學習歷程都只存在你這台裝置的瀏覽器裡，換一台電腦或清除瀏覽器資料就會歸零。
   </div>
   <div class="quickstart no-print">
-    <button class="btn btn-main" id="quickStartBtn">立即開始・全部 418 題</button>
+    <button class="btn btn-main" id="quickStartBtn">隨機十題・立即開始</button>
     <p>不知道要練什麼？按這裡最快，不用任何設定。想加強特定類別，才需要往下設定篩選條件。</p>
   </div>
 
@@ -185,7 +195,7 @@
     <div class="toolrow"><h2 style="margin-bottom:0">選擇範圍</h2><span class="gtoggle" id="allToggle">全選／清除</span></div>
     <div id="catChips" class="chips"></div>
     <div class="row" style="border-top:1px dashed var(--line); padding-top:12px">
-      <label>題數：<input type="number" id="numInput" min="1" value="418" style="width:70px"></label>
+      <label>題數：<input type="number" id="numInput" min="1" value="461" style="width:70px"></label>
       <label><input type="checkbox" id="shuffleChk" checked> 隨機出題</label>
     </div>
     <div class="count" id="countInfo"></div>
@@ -241,7 +251,6 @@ function safeSet(k, v){ try{ localStorage["setItem"](k, v); }catch(e){} }
 function announce(msg){ const el=document.getElementById("srLive"); if(el){ el.textContent=""; el.textContent=msg; } }
 // 分類依108課綱英語文「學習內容」架構：Ba詞彙／Bb句型（文法）／Bc篇章（閱讀理解，含克漏字）
 const CATS = { Ba:"詞彙 Ba", Bb:"句型文法 Bb", Bc:"篇章閱讀 Bc" };
-const CAT_ORDER = ["Ba","Bb","Bc"];
 
 function correctKeys(q){ return String(q.answer).split(/[、,]/).map(s=>s.trim()); }
 function isCorrect(q, picked){ return correctKeys(q).includes(picked); }
@@ -312,27 +321,59 @@ function renderHistory(){
   ).join("") : `<p style="color:var(--muted); font-size:.85rem">還沒有練習紀錄，先去「開始練習」交一次卷看看！</p>`;
 }
 
-// ---- 分類篩選面板 ----
-const activeCats = new Set(CAT_ORDER);
+// ---- 分類篩選面板：大分類（108課綱 Ba/Bb/Bc）＋展開細項 ----
+const SUBCATS = {
+  Ba: ["字彙:名詞","字彙:動詞","字彙:形容詞","字彙:副詞","字彙:代名詞","字彙:片語","字彙:語意"],
+  Bb: ["文法:時態","文法:被動語態","文法:動名詞","文法:不定詞","文法:分詞","文法:名詞子句","文法:關係子句","文法:附加問句","文法:連接詞","文法:介系詞","文法:代名詞","文法:代動詞","文法:主詞動詞一致","文法:句型","文法:動詞句型","文法:祈使句","文法:限定詞"],
+  Bc: ["閱讀:細節查找","閱讀:主旨推論","閱讀:推論判斷","閱讀:統整推論","閱讀:因果推論","閱讀:同義替換","閱讀:語境猜義","閱讀:語境查找","閱讀:指涉判斷","閱讀:文本比較","閱讀:圖表判讀","閱讀:地圖判讀","閱讀:標題理解","閱讀:段落主旨","閱讀:篇章理解","閱讀:篇章結構","閱讀:流程理解","閱讀:人物判斷","閱讀:作者觀點","閱讀:觀點判讀","閱讀:寫作手法","閱讀:情境應用","閱讀:數量計算","閱讀:日期判讀","閱讀:克漏字語意"]
+};
+const activeSubs = new Set();
+Object.entries(SUBCATS).forEach(([cat,subs])=>subs.forEach(s=>activeSubs.add(cat+"::"+s)));
+const totalSubs = Object.values(SUBCATS).reduce((a,s)=>a+s.length,0);
 const chipsBox = $("catChips");
+function subCount(cat,s){ return ALL.filter(q=>q.cat===cat && (q.tags||[]).includes(s)).length; }
 function catCount(cat){ return ALL.filter(q=>q.cat===cat).length; }
 function syncChips(){
-  document.querySelectorAll("#catChips .chip").forEach(c=>c.classList.toggle("on", activeCats.has(c.dataset.cat)));
+  document.querySelectorAll("#catChips .chip[data-key]").forEach(c=>
+    c.classList.toggle("on", activeSubs.has(c.dataset.key)));
   updateCount();
 }
-CAT_ORDER.forEach(cat=>{
-  const c = document.createElement("span");
-  c.className = "chip on"; c.dataset.cat = cat;
-  c.innerHTML = `${CATS[cat]}<span class="cnt">(${catCount(cat)})</span>`;
-  c.onclick = ()=>{ activeCats.has(cat) ? activeCats.delete(cat) : activeCats.add(cat); syncChips(); };
-  chipsBox.appendChild(c);
+Object.entries(SUBCATS).forEach(([cat,subs])=>{
+  const box = document.createElement("div");
+  box.className = "catgroup";
+  const title = document.createElement("div");
+  title.className = "gtitle";
+  title.innerHTML = `<i class="catdot cat-${cat}"></i><b>${CATS[cat]}</b><span class="cnt">(${catCount(cat)})</span><span class="gtoggle">全選</span><span class="gtoggle">清除</span><span class="gtoggle expandToggle">展開細項 ▾</span>`;
+  const [selAll, selNone] = title.querySelectorAll(".gtoggle:not(.expandToggle)");
+  const expandToggle = title.querySelector(".expandToggle");
+  selAll.onclick = ()=>{ subs.forEach(s=>activeSubs.add(cat+"::"+s)); syncChips(); };
+  selNone.onclick = ()=>{ subs.forEach(s=>activeSubs.delete(cat+"::"+s)); syncChips(); };
+  box.appendChild(title);
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  chips.style.display = "none";
+  expandToggle.onclick = ()=>{
+    const show = chips.style.display === "none";
+    chips.style.display = show ? "flex" : "none";
+    expandToggle.textContent = show ? "收合細項 ▴" : "展開細項 ▾";
+  };
+  subs.forEach(s=>{
+    const key = cat+"::"+s;
+    const c = document.createElement("span");
+    c.className = "chip on"; c.dataset.key = key;
+    c.innerHTML = `${s.split(":")[1]||s}<span class="cnt">(${subCount(cat,s)})</span>`;
+    c.onclick = ()=>{ activeSubs.has(key) ? activeSubs.delete(key) : activeSubs.add(key); syncChips(); };
+    chips.appendChild(c);
+  });
+  box.appendChild(chips);
+  chipsBox.appendChild(box);
 });
 $("allToggle").onclick = ()=>{
-  if(activeCats.size === CAT_ORDER.length) activeCats.clear();
-  else CAT_ORDER.forEach(c=>activeCats.add(c));
+  if(activeSubs.size === totalSubs) activeSubs.clear();
+  else Object.entries(SUBCATS).forEach(([cat,subs])=>subs.forEach(s=>activeSubs.add(cat+"::"+s)));
   syncChips();
 };
-function pool(){ return ALL.filter(q=>activeCats.has(q.cat)); }
+function pool(){ return ALL.filter(q => (q.tags||[]).some(t=>activeSubs.has(q.cat+"::"+t))); }
 function updateCount(){ $("countInfo").textContent = `符合條件共 ${pool().length} 題（題庫總計 ${ALL.length} 題）`; }
 updateCount();
 
@@ -465,8 +506,10 @@ $("startBtn").onclick = ()=>{
   startQuiz(list);
 };
 $("quickStartBtn").onclick = ()=>{
-  activeCats.clear(); CAT_ORDER.forEach(c=>activeCats.add(c)); syncChips();
-  startQuiz(shuffle(ALL));
+  activeSubs.clear();
+  Object.entries(SUBCATS).forEach(([cat,subs])=>subs.forEach(s=>activeSubs.add(cat+"::"+s)));
+  syncChips();
+  startQuiz(shuffle(ALL).slice(0, 10));
 };
 $("submitBtn").onclick = endQuiz;
 $("backBtn").onclick = backToFilter;

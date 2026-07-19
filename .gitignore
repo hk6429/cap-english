@@ -1,0 +1,7 @@
+.vercel
+
+# Local Netlify folder
+.netlify
+
+# Cloudflare Wrangler
+.wrangler

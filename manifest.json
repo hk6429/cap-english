@@ -1,0 +1,9 @@
+{
+  "name": "英語閱讀練功房 — 國中會考英語題庫",
+  "short_name": "英語練功房",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#e6fbf8",
+  "theme_color": "#0f766e",
+  "icons": []
+}

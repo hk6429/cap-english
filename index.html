@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>英語閱讀練功房｜國中會考英語題庫．歷屆試題分類練習</title>
-<meta name="description" content="免費線上練習國中教育會考英語科（閱讀）歷屆試題（考古題）選擇題，逐題附心測中心官方通過率與詳解。支援分類篩選（詞彙／文法句型／閱讀理解／克漏字）、錯題本間隔複習，免註冊、進度存在自己裝置。">
+<meta name="description" content="免費線上練習國中教育會考英語科（閱讀）歷屆試題（考古題）選擇題，逐題附心測中心官方通過率與詳解。支援分類篩選（詞彙／句型文法／篇章閱讀（含克漏字））、錯題本間隔複習，免註冊、進度存在自己裝置。">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#e6fbf8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0b1f1d" media="(prefers-color-scheme: dark)">
-<link rel="canonical" href="https://cap-english.vercel.app/">
+<link rel="canonical" href="https://cap-english-chi.vercel.app/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="英語閱讀練功房｜國中會考英語題庫">
 <meta property="og:description" content="國中教育會考英語科（閱讀）歷屆考古題免費練，每題附官方通過率與詳解，支援分類練習與錯題本，免註冊。">
-<meta property="og:url" content="https://cap-english.vercel.app/">
+<meta property="og:url" content="https://cap-english-chi.vercel.app/">
 <meta property="og:site_name" content="英語閱讀練功房">
 <meta property="og:locale" content="zh_TW">
 <meta name="twitter:card" content="summary">
@@ -21,9 +21,9 @@
 <meta name="twitter:description" content="國中會考英語（閱讀）歷屆考古題免費練，每題附官方通過率與詳解，附錯題本間隔複習，免註冊。">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
-{"@type":"WebSite","name":"英語閱讀練功房","alternateName":"國中會考英語題庫","url":"https://cap-english.vercel.app/","inLanguage":"zh-Hant","description":"國中教育會考英語科（閱讀）歷屆試題（考古題）選擇題免費線上練習，附心測中心官方通過率與詳解。"},
+{"@type":"WebSite","name":"英語閱讀練功房","alternateName":"國中會考英語題庫","url":"https://cap-english-chi.vercel.app/","inLanguage":"zh-Hant","description":"國中教育會考英語科（閱讀）歷屆試題（考古題）選擇題免費線上練習，附心測中心官方通過率與詳解。"},
 {"@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"這個網站是什麼？","acceptedAnswer":{"@type":"Answer","text":"收錄國中教育會考英語科（閱讀）歷屆選擇題（考古題），可依詞彙／文法句型／閱讀理解／克漏字分類挑題當場作答，每題附心測中心官方通過率與詳解。"}},
+{"@type":"Question","name":"這個網站是什麼？","acceptedAnswer":{"@type":"Answer","text":"收錄國中教育會考英語科（閱讀）歷屆選擇題（考古題），可依詞彙／句型文法／篇章閱讀（含克漏字）分類挑題當場作答，每題附心測中心官方通過率與詳解。"}},
 {"@type":"Question","name":"需要註冊或付費嗎？","acceptedAnswer":{"@type":"Answer","text":"完全免費、免註冊。錯題本與學習歷程只存在你這台裝置的瀏覽器，不會上傳任何個人資料。"}},
 {"@type":"Question","name":"題目來源與答案正確嗎？","acceptedAnswer":{"@type":"Answer","text":"題目為國中教育會考官方歷屆試題，每題答案均比對心測中心官方答案卡，並附官方公布通過率。"}}
 ]}
@@ -71,7 +71,8 @@
     box-shadow:0 1px 3px rgba(11,43,40,.08)}
   .q .meta{font-size:.78rem; color:var(--muted); margin-bottom:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center}
   .tag{background:#dff3ee; border-radius:4px 10px 4px 10px; padding:2px 9px}
-  .cat-E1{background:#f0ddca}.cat-E2{background:#d5e6df}.cat-E3{background:#d9dfee}.cat-E4{background:#e7dbee}
+  .cat-Ba{background:#f0ddca}.cat-Bb{background:#d5e6df}.cat-Bc{background:#d9dfee}
+  .wl{background:#fff0d6; border-radius:4px 10px 4px 10px; padding:2px 9px}
   .passage{background:#eafaf7; border-left:3px solid var(--seal); padding:12px 14px; border-radius:0 8px 8px 0; margin-bottom:12px; font-size:.98rem}
   .passage::before{content:"閱讀文本"; display:block; font-size:.7rem; color:var(--muted); letter-spacing:.2em; margin-bottom:6px}
   .passage p{margin-bottom:.6em}
@@ -153,7 +154,8 @@
     .opt.picked-bad{background:#3a231b}
     .opt.picked-ok .okey,.opt.picked-bad .okey,.opt.reveal-ok .okey{color:#08201d}
     .scoreprog,.passbar{background:#1f3d38}
-    .cat-E1{background:#4a3728}.cat-E2{background:#2e4038}.cat-E3{background:#333a4d}.cat-E4{background:#40324a}
+    .cat-Ba{background:#4a3728}.cat-Bb{background:#2e4038}.cat-Bc{background:#333a4d}
+    .wl{background:#4a3f28}
     .qimg{background:#eafaf7}
   }
 </style>
@@ -169,9 +171,9 @@
 <div class="scorebar" id="scorebar"></div>
 
 <div class="wrap" id="main">
-  <noscript><div style="max-width:860px;margin:12px auto;padding:12px 16px;background:#dff3ee;border-radius:8px;font-size:.9rem">本站收錄國中教育會考英語科（閱讀）115年試題共 43 題選擇題，含四大分類（詞彙、文法句型、閱讀理解、克漏字），每題附心測中心官方通過率與詳解。本站需開啟 JavaScript 才能作答，請於瀏覽器啟用。</div></noscript>
+  <noscript><div style="max-width:860px;margin:12px auto;padding:12px 16px;background:#dff3ee;border-radius:8px;font-size:.9rem">本站收錄國中教育會考英語科（閱讀）115年試題共 43 題選擇題，依108課綱學習內容分三類（詞彙 Ba、句型文法 Bb、篇章閱讀 Bc，含克漏字），每題附心測中心官方通過率與詳解。本站需開啟 JavaScript 才能作答，請於瀏覽器啟用。</div></noscript>
   <div class="introbox no-print" id="introBox">
-    <b>這是什麼？</b>收錄國中教育會考英語科（閱讀）115 年歷屆試題（考古題）共 43 題，可依詞彙／文法句型／閱讀理解／克漏字分類挑題，當場作答立刻看到對錯，每題附心測中心官方通過率與詳解。<br>
+    <b>這是什麼？</b>收錄國中教育會考英語科（閱讀）115 年歷屆試題（考古題）共 43 題，可依詞彙／句型文法／篇章閱讀（含克漏字）分類挑題，當場作答立刻看到對錯，每題附心測中心官方通過率與詳解。<br>
     <b>不需登入，不會上傳任何個人資料</b>——錯題本、學習歷程都只存在你這台裝置的瀏覽器裡，換一台電腦或清除瀏覽器資料就會歸零。
   </div>
   <div class="quickstart no-print">
@@ -227,8 +229,9 @@
 document.addEventListener("DOMContentLoaded", ()=>{
 function safeSet(k, v){ try{ localStorage["setItem"](k, v); }catch(e){} }
 function announce(msg){ const el=document.getElementById("srLive"); if(el){ el.textContent=""; el.textContent=msg; } }
-const CATS = { E1:"詞彙", E2:"文法句型", E3:"閱讀理解", E4:"克漏字" };
-const CAT_ORDER = ["E1","E2","E3","E4"];
+// 分類依108課綱英語文「學習內容」架構：Ba詞彙／Bb句型（文法）／Bc篇章（閱讀理解，含克漏字）
+const CATS = { Ba:"詞彙 Ba", Bb:"句型文法 Bb", Bc:"篇章閱讀 Bc" };
+const CAT_ORDER = ["Ba","Bb","Bc"];
 
 function correctKeys(q){ return String(q.answer).split(/[、,]/).map(s=>s.trim()); }
 function isCorrect(q, picked){ return correctKeys(q).includes(picked); }
@@ -336,6 +339,7 @@ function renderQ(q, idx){
   const passRate = q.pass!=null ? Math.round(q.pass*100) : null;
   let html = `<div class="meta"><span>${q.era} ${q.year} 年第 ${q.no} 題</span>`+
     `<span class="tag cat-${q.cat}">${CATS[q.cat]}</span>`+
+    (q.wordLevel?`<span class="tag wl" title="正解單字對照教育部國民中小學英語文課綱附錄字表">${q.wordLevel==="2000外"?"字表外":q.wordLevel+"字表"}</span>`:"")+
     (q.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")+
     (passRate!=null?(()=>{const c=passRate>=70?"var(--ok)":(passRate>=40?"#a86a12":"var(--bad)"); const w=Math.max(0,Math.min(100,passRate));
       return `<span class="passtag" title="官方公布通過率 ${passRate}%，愈高愈簡單">官方通過率 <span class="passbar"><i style="width:${w}%; background:${c}"></i></span> ${passRate}%</span>`;})():"")+

@@ -175,15 +175,15 @@
 <a class="checklink no-print" href="check.html" title="輸入年份-題號快速查題校對">🔍 查題校對</a>
 <header>
   <h1>英語閱讀練功房</h1>
-  <p>國中教育會考英語科（閱讀）　歷屆試題分類練習</p>
+  <p>國中基測．教育會考英語科（閱讀）　歷屆試題分類練習</p>
 </header>
 
 <div class="scorebar" id="scorebar"></div>
 
 <div class="wrap" id="main">
-  <noscript><div style="max-width:860px;margin:12px auto;padding:12px 16px;background:#dff3ee;border-radius:8px;font-size:.9rem">本站收錄國中教育會考英語科（閱讀）115年試題共 43 題選擇題，依108課綱學習內容分三類（詞彙 Ba、句型文法 Bb、篇章閱讀 Bc，含克漏字），每題附心測中心官方通過率與詳解。本站需開啟 JavaScript 才能作答，請於瀏覽器啟用。</div></noscript>
+  <noscript><div style="max-width:860px;margin:12px auto;padding:12px 16px;background:#dff3ee;border-radius:8px;font-size:.9rem">本站收錄國中基測與教育會考英語科（閱讀）90～115 年試題共 1530 題選擇題，依108課綱學習內容分三類（詞彙 Ba、句型文法 Bb、篇章閱讀 Bc，含克漏字），每題附心測中心官方通過率與詳解（基測年份無官方通過率）。本站需開啟 JavaScript 才能作答，請於瀏覽器啟用。</div></noscript>
   <div class="introbox no-print" id="introBox">
-    <b>這是什麼？</b>收錄國中教育會考英語科（閱讀）105～115 年歷屆試題（考古題）共 461 題，可依詞彙／句型文法／篇章閱讀（含克漏字）分類挑題，當場作答立刻看到對錯，每題附心測中心官方通過率與詳解。<br>
+    <b>這是什麼？</b>收錄國中基測（90～102年）與教育會考（103～115年）英語科（閱讀）歷屆試題（考古題）共 1530 題，可依詞彙／句型文法／篇章閱讀（含克漏字）分類挑題，當場作答立刻看到對錯，每題附通過率（會考為官方公布，基測年份無官方通過率）與詳解。<br>
     <b>不需登入，不會上傳任何個人資料</b>——錯題本、學習歷程都只存在你這台裝置的瀏覽器裡，換一台電腦或清除瀏覽器資料就會歸零。
   </div>
   <div class="quickstart no-print">
@@ -195,7 +195,7 @@
     <div class="toolrow"><h2 style="margin-bottom:0">選擇範圍</h2><span class="gtoggle" id="allToggle">全選／清除</span></div>
     <div id="catChips" class="chips"></div>
     <div class="row" style="border-top:1px dashed var(--line); padding-top:12px">
-      <label>題數：<input type="number" id="numInput" min="1" value="461" style="width:70px"></label>
+      <label>題數：<input type="number" id="numInput" min="1" value="1530" style="width:70px"></label>
       <label><input type="checkbox" id="shuffleChk" checked> 隨機出題</label>
     </div>
     <div class="count" id="countInfo"></div>
@@ -226,14 +226,38 @@
   </div>
 
   <div class="footer">
-    題目來源：國中教育會考（心測中心 cap.rcpet.edu.tw）官方歷屆試題．依著作權法第 9 條，考試試題不得為著作權標的<br>
-    難度＝官方公布之各題通過率，愈高愈簡單
+    題目來源：國中基測與教育會考（心測中心 cap.rcpet.edu.tw）歷屆試題．依著作權法第 9 條，考試試題不得為著作權標的<br>
+    難度＝官方公布之各題通過率，愈高愈簡單（僅會考年份有官方通過率，基測年份暫缺）
     <nav class="flinks">
       <a href="about.html">資料來源與著作權說明</a><a href="privacy.html">隱私權政策</a>
     </nav>
   </div>
 </div>
 
+<script src="data/q90-1.js"></script>
+<script src="data/q90-2.js"></script>
+<script src="data/q91-1.js"></script>
+<script src="data/q91-2.js"></script>
+<script src="data/q92-1.js"></script>
+<script src="data/q92-2.js"></script>
+<script src="data/q93-1.js"></script>
+<script src="data/q93-2.js"></script>
+<script src="data/q94-1.js"></script>
+<script src="data/q95-1.js"></script>
+<script src="data/q95-2.js"></script>
+<script src="data/q96-1.js"></script>
+<script src="data/q96-2.js"></script>
+<script src="data/q97-1.js"></script>
+<script src="data/q97-2.js"></script>
+<script src="data/q98-1.js"></script>
+<script src="data/q98-2.js"></script>
+<script src="data/q99-1.js"></script>
+<script src="data/q100-1.js"></script>
+<script src="data/q100-2.js"></script>
+<script src="data/q101.js"></script>
+<script src="data/q102.js"></script>
+<script src="data/q103.js"></script>
+<script src="data/q104.js"></script>
 <script src="data/q105.js"></script>
 <script src="data/q106.js"></script>
 <script src="data/q107.js"></script>
@@ -258,8 +282,9 @@ function isCorrect(q, picked){ return correctKeys(q).includes(picked); }
 // 攤平題庫（單一年份，但保留跨年份擴充彈性）
 const ALL = [];
 (window.BANK||[]).forEach(bank => {
+  const sittingSuffix = bank.sitting==="first" ? "-1" : bank.sitting==="second" ? "-2" : "";
   bank.questions.forEach(q => {
-    ALL.push({...q, year:bank.year, era:bank.era, id:`${bank.era}${bank.year}-${q.no}`,
+    ALL.push({...q, year:bank.year, era:bank.era, sitting:bank.sitting, id:`${bank.era}${bank.year}${sittingSuffix}-${q.no}`,
       groupData: q.group ? bank.groups[q.group] : null});
   });
 });
@@ -373,7 +398,14 @@ $("allToggle").onclick = ()=>{
   else Object.entries(SUBCATS).forEach(([cat,subs])=>subs.forEach(s=>activeSubs.add(cat+"::"+s)));
   syncChips();
 };
-function pool(){ return ALL.filter(q => (q.tags||[]).some(t=>activeSubs.has(q.cat+"::"+t))); }
+function catActive(cat){ return (SUBCATS[cat]||[]).some(s=>activeSubs.has(cat+"::"+s)); }
+function pool(){
+  return ALL.filter(q => {
+    const wl = SUBCATS[q.cat]||[];
+    const knownTags = (q.tags||[]).filter(t=>wl.includes(t));
+    return knownTags.length ? knownTags.some(t=>activeSubs.has(q.cat+"::"+t)) : catActive(q.cat);
+  });
+}
 function updateCount(){ $("countInfo").textContent = `符合條件共 ${pool().length} 題（題庫總計 ${ALL.length} 題）`; }
 updateCount();
 
@@ -388,7 +420,8 @@ function renderQ(q, idx){
   const div = document.createElement("div");
   div.className = "q"; div.dataset.id = q.id;
   const passRate = q.pass!=null ? Math.round(q.pass*100) : null;
-  let html = `<div class="meta"><span>${q.era} ${q.year} 年第 ${q.no} 題</span>`+
+  const sittingLabel = q.sitting==="first" ? "第一次" : q.sitting==="second" ? "第二次" : "";
+  let html = `<div class="meta"><span>${q.era} ${q.year} 年${sittingLabel}第 ${q.no} 題</span>`+
     `<span class="tag cat-${q.cat}">${CATS[q.cat]}</span>`+
     (q.wordLevel?`<span class="tag wl" title="正解單字對照教育部國民中小學英語文課綱附錄字表">${q.wordLevel==="2000外"?"字表外":q.wordLevel+"字表"}</span>`:"")+
     (q.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")+

@@ -41,13 +41,37 @@ kbd{background:var(--ink); color:var(--paper); border-radius:4px; padding:1px 6p
 <body>
 <div class="wrap">
   <h1>查題校對系統 <a href="index.html" style="font-size:.8rem;font-weight:400;margin-left:8px">← 回題庫首頁</a></h1>
-  <div class="hint">輸入「年份-題號」直接查題，支援 <kbd>115-1</kbd> <kbd>105-33</kbd> 各種寫法。按 Enter 或「查」即可。收錄會考英語（閱讀）105～115 年。</div>
+  <div class="hint">輸入「年份-題號」直接查題，支援 <kbd>115-1</kbd> <kbd>105-33</kbd> 各種寫法；基測有兩場次的年份請加場次，如 <kbd>90-1-5</kbd>（90年第一次第5題）<kbd>90-2-5</kbd>（第二次第5題）。按 Enter 或「查」即可。收錄基測 90～102 年、會考 103～115 年。</div>
   <div class="bar">
     <input id="q" placeholder="例：115-1、105-33" autocomplete="off" autofocus>
     <button id="go">查</button>
   </div>
   <div id="out"></div>
 </div>
+<script src="data/q90-1.js"></script>
+<script src="data/q90-2.js"></script>
+<script src="data/q91-1.js"></script>
+<script src="data/q91-2.js"></script>
+<script src="data/q92-1.js"></script>
+<script src="data/q92-2.js"></script>
+<script src="data/q93-1.js"></script>
+<script src="data/q93-2.js"></script>
+<script src="data/q94-1.js"></script>
+<script src="data/q95-1.js"></script>
+<script src="data/q95-2.js"></script>
+<script src="data/q96-1.js"></script>
+<script src="data/q96-2.js"></script>
+<script src="data/q97-1.js"></script>
+<script src="data/q97-2.js"></script>
+<script src="data/q98-1.js"></script>
+<script src="data/q98-2.js"></script>
+<script src="data/q99-1.js"></script>
+<script src="data/q100-1.js"></script>
+<script src="data/q100-2.js"></script>
+<script src="data/q101.js"></script>
+<script src="data/q102.js"></script>
+<script src="data/q103.js"></script>
+<script src="data/q104.js"></script>
 <script src="data/q105.js"></script>
 <script src="data/q106.js"></script>
 <script src="data/q107.js"></script>
@@ -66,9 +90,12 @@ const input = document.getElementById('q');
 function parse(s){
   if(!s) return null;
   s = s.replace(/\s+/g,' ').trim();
-  const m = s.match(/(\d{2,3})\D*?(\d{1,2})\b/);
-  if(!m) return null;
-  return { year: parseInt(m[1],10), no: parseInt(m[2],10) };
+  const nums = s.match(/\d+/g);
+  if(!nums || nums.length<2) return null;
+  if(nums.length>=3 && (nums[1]==='1'||nums[1]==='2')){
+    return { year: parseInt(nums[0],10), sitting: nums[1]==='1'?'first':'second', no: parseInt(nums[2],10) };
+  }
+  return { year: parseInt(nums[0],10), no: parseInt(nums[1],10) };
 }
 
 function esc(t){return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -93,8 +120,9 @@ function flags(q, bank){
 
 function cardHtml(bank, q){
   const g = q.group && bank.groups ? bank.groups[q.group] : null;
+  const sittingLabel = bank.sitting==='first' ? '第一次 ・ ' : bank.sitting==='second' ? '第二次 ・ ' : '';
   let h = '<div class="card">';
-  h += '<div class="meta">會考 <b>'+bank.year+' 年</b> ・ 第 <b>'+q.no+'</b> 題'
+  h += '<div class="meta">'+(bank.era||'會考')+' <b>'+bank.year+' 年</b> ・ '+sittingLabel+'第 <b>'+q.no+'</b> 題'
      + (q.cat?' ・ '+q.cat:'') + (q.wordLevel?' ・ '+(q.wordLevel==='2000外'?'字表外':q.wordLevel+'字表'):'')
      + (q.tags&&q.tags.length?' ・ '+q.tags.join('／'):'') + '</div>';
   const fl = flags(q, bank);
@@ -125,9 +153,21 @@ function cardHtml(bank, q){
 function render(target){
   const r = parse(target);
   if(!r){ out.innerHTML = '<div class="err">看不懂「'+esc(target)+'」，請輸入像 115-1、105-33 這樣的格式。</div>'; return; }
-  const bank = (window.BANK||[]).find(b=>b.year===r.year);
+  const banks = (window.BANK||[]).filter(b=>b.year===r.year);
+  let bank;
+  if(banks.length===0){
+    out.innerHTML = '<div class="err">題庫沒有 '+r.year+' 年（目前收錄基測 90～102 年、會考 103～115 年）。</div>';
+    return;
+  } else if(banks.length===1){
+    bank = banks[0];
+  } else if(r.sitting){
+    bank = banks.find(b=>b.sitting===r.sitting);
+  } else {
+    out.innerHTML = '<div class="err">'+r.year+' 年有多場次（'+banks.map(b=>b.sitting==='first'?'第一次':b.sitting==='second'?'第二次':b.sitting).join('、')+'），請加上場次，例如 '+r.year+'-1-'+r.no+'（第一次）或 '+r.year+'-2-'+r.no+'（第二次）。</div>';
+    return;
+  }
   if(!bank){
-    out.innerHTML = '<div class="err">題庫沒有 '+r.year+' 年（目前收錄 105～115 年）。</div>';
+    out.innerHTML = '<div class="err">找不到 '+r.year+' 年這個場次。</div>';
     return;
   }
   const q = (bank.questions||[]).find(x=>x.no===r.no);

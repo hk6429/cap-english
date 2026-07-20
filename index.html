@@ -104,6 +104,8 @@
   .opt.reveal-ok .okey{background:var(--ok); border-color:var(--ok); color:#fff}
   .opt.locked{cursor:default}
   .opt.locked:hover{transform:none; box-shadow:none}
+  .opt.picked-neutral{border-color:var(--accent); border-width:2px; background:#eafaf7}
+  .opt.picked-neutral .okey{background:var(--accent); border-color:var(--accent); color:#fff}
   .opt.picked-ok .otext::after{content:"　✓ 你選對了"; color:var(--ok); font-weight:700; font-size:.82em; white-space:nowrap}
   .opt.picked-bad .otext::after{content:"　✗ 你選錯了"; color:var(--bad); font-weight:700; font-size:.82em; white-space:nowrap}
   .opt.reveal-ok:not(.picked-ok):not(.picked-bad) .otext::after{content:"　✓ 正解"; color:var(--ok); font-weight:700; font-size:.82em; white-space:nowrap}
@@ -130,6 +132,47 @@
   .quickstart .btn-main{font-size:1.08rem; padding:14px 26px; box-shadow:0 2px 8px rgba(0,0,0,.25)}
   .quickstart p{color:#eafff9; opacity:.85; font-size:.82rem; margin-top:8px}
   #wrongCount.hot{color:var(--bad); font-weight:700}
+  .pickbox{margin-right:8px; transform:scale(1.2)}
+  .timer{font-weight:700}
+  .timer.low{color:var(--bad)}
+  .catstat{font-size:.85rem; margin-bottom:10px; color:var(--accent2)}
+  .print-only{display:none}
+  #printHead{display:none}
+  @media print{
+    header,.scorebar,.panel,.btn,.footer,.no-print{display:none !important}
+    html,body{background:#fff; font-family:"PMingLiU","新細明體",serif; font-size:12pt; color:#000; line-height:1.5}
+    .wrap{max-width:100%; padding:0; margin:0}
+    #printHead{display:block !important}
+    #quiz{column-count:2; column-gap:9mm; column-rule:.5pt solid #999; margin-top:6pt; column-fill:auto}
+    .q{border:0; border-bottom:.5pt solid #bbb; border-radius:0; padding:0 0 4pt 0; margin:0 0 4pt 0;
+       box-shadow:none; background:transparent}
+    .q .stem{break-after:avoid}
+    .opts{break-inside:avoid}
+    .passage{orphans:3; widows:3}
+    .q .meta{display:none}
+    .passage{background:#fff; border:.5pt solid #999; border-radius:0; padding:5pt 6pt; margin-bottom:5pt; font-size:11pt}
+    .passage::before{display:none}
+    .stem{font-size:12pt; margin-bottom:4pt}
+    .opts{gap:1pt}
+    .opt{border:0; padding:1pt 0; min-height:0; font-size:12pt; display:block; transition:none}
+    .okey{display:inline; border:0; width:auto; height:auto; margin:0; font-size:12pt; color:#000}
+    .okey::before{content:"("}
+    .okey::after{content:") "}
+    .otext{display:inline}
+    .qimg{max-width:100%; margin:4pt 0}
+    .print-only{display:block !important}
+    .anskey{break-before:page; column-count:2; column-gap:9mm; font-size:11pt}
+    .anskey h2{column-span:all; font-size:13pt; margin-bottom:6pt}
+    .anskey .catstat{column-span:all}
+    .anskey ol{padding-left:1.4em}
+    .anskey li{break-inside:avoid; margin-bottom:2pt}
+    .anskeyDetail{break-before:page; font-size:11pt}
+    .anskeyDetail h2{font-size:13pt; margin-bottom:6pt}
+    .anskeyDetail .dq{break-inside:avoid; margin-bottom:10pt; padding-bottom:8pt; border-bottom:.5pt solid #ccc}
+    .anskeyDetail .dq b{font-size:11.5pt}
+    .anskeyDetail .dans{color:var(--seal); font-weight:bold}
+    .anskeyDetail .dexp{margin-top:3pt}
+  }
   .skiplink{position:absolute; left:-999px; top:0; background:var(--seal); color:#eafff9; padding:10px 16px; z-index:100; border-radius:0 0 8px 0}
   .skiplink:focus{left:0}
   .checklink{position:fixed; top:calc(env(safe-area-inset-top,0px) + 10px); right:10px; z-index:60; font-size:.8rem; padding:5px 12px; border-radius:14px; background:rgba(15,118,110,.82); color:#eafff9; text-decoration:none; border:1px solid rgba(255,255,255,.2); opacity:.72; -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
@@ -161,6 +204,7 @@
     .btn-outline:hover{background:rgba(79,214,196,.16)}
     .opt.picked-ok{background:#1c3626}
     .opt.picked-bad{background:#3a231b}
+    .opt.picked-neutral{background:#173330}
     .opt.picked-ok .okey,.opt.picked-bad .okey,.opt.reveal-ok .okey{color:#08201d}
     .scoreprog,.passbar{background:#1f3d38}
     .cat-Ba{background:#4a3728}.cat-Bb{background:#2e4038}.cat-Bc{background:#333a4d}
@@ -168,6 +212,7 @@
     .qimg{background:#eafaf7}
   }
 </style>
+<style id="pageSizeStyle"></style>
 </head>
 <body>
 <a class="skiplink" href="#main">跳到主要內容</a>
@@ -197,6 +242,7 @@
     <div class="row" style="border-top:1px dashed var(--line); padding-top:12px">
       <label>題數：<input type="number" id="numInput" min="1" value="1530" style="width:70px"></label>
       <label><input type="checkbox" id="shuffleChk" checked> 隨機出題</label>
+      <label>年份／場次：<select id="bankSel"><option value="">（整回模考需先選）</option></select></label>
     </div>
     <div class="count" id="countInfo"></div>
     <div class="row">
@@ -204,6 +250,8 @@
       <button class="btn btn-main" id="reviewBtn" style="display:none">📅 今日該複習 <b>0</b> 題</button>
       <button class="btn btn-sub" id="wrongBtn">錯題本（<span id="wrongCount">0</span>）</button>
       <button class="btn btn-sub" id="historyBtn">學習歷程</button>
+      <button class="btn btn-sub" id="mockBtn">整回模考（需先選年份／場次）</button>
+      <button class="btn btn-sub" id="paperBtn">出卷模式（老師）</button>
     </div>
   </div>
 
@@ -218,12 +266,42 @@
     <div id="historyList" style="font-size:.9rem"></div>
   </div>
 
+  <div class="panel no-print" id="paperPanel" style="display:none">
+    <h2>出卷模式</h2>
+    <p style="font-size:.9rem; margin-bottom:8px">勾選下方題目後：可產生「線上測驗連結」給學生，或直接「列印考卷」（含教師答案卷＋教師詳解卷）／「下載 Word 檔」自行編輯。</p>
+    <p id="paperFilterInfo" style="font-size:.82rem; color:var(--muted); margin-bottom:8px"></p>
+    <div class="row">
+      <label>快速勾選　年份／場次：<select id="paperBankQuick"><option value="">全部</option></select></label>
+      <button class="btn btn-sub" id="paperQuickBtn">套用（只勾符合的）</button>
+    </div>
+    <div class="row">
+      <button class="btn btn-sub" id="selAllBtn">全選</button>
+      <button class="btn btn-sub" id="selNoneBtn">全不選</button>
+      <button class="btn btn-main" id="linkBtn">產生測驗連結</button>
+      <label>紙張：<select id="pageSizeSel"><option value="B4">B4（雙欄推薦）</option><option value="A4">A4</option></select></label>
+      <button class="btn btn-main" id="printBtn">列印考卷</button>
+      <button class="btn btn-sub" id="wordBtn">下載 Word 檔</button>
+      <span id="selCount" style="font-size:.9rem"></span>
+    </div>
+    <div id="linkOut" style="margin-top:10px; font-size:.85rem; word-break:break-all"></div>
+  </div>
+
   <div class="result" id="resultBox"></div>
+  <div class="print-only" id="printHead" style="border-bottom:1pt solid #000; padding-bottom:6pt; margin-bottom:4pt">
+    <div style="text-align:center; font-size:16pt; font-weight:bold">英語科練習測驗卷</div>
+    <div id="printHeadSub" style="text-align:center; font-size:10.5pt; color:#333; margin-top:2pt"></div>
+    <div style="display:flex; justify-content:space-between; font-size:11pt; margin-top:8pt">
+      <span>班級：＿＿＿＿＿＿</span><span>座號：＿＿＿＿</span><span>姓名：＿＿＿＿＿＿＿＿＿＿</span>
+    </div>
+  </div>
   <div id="quiz"></div>
   <div style="text-align:center" class="no-print">
     <button class="btn btn-main" id="submitBtn" style="display:none">交卷看成績</button>
     <button class="btn btn-outline" id="backBtn" style="display:none; margin-left:10px">回選題</button>
   </div>
+
+  <div class="print-only anskey" id="anskey"></div>
+  <div class="print-only anskeyDetail" id="anskeyDetail"></div>
 
   <div class="footer">
     題目來源：國中基測與教育會考（心測中心 cap.rcpet.edu.tw）歷屆試題．依著作權法第 9 條，考試試題不得為著作權標的<br>
@@ -290,8 +368,32 @@ const ALL = [];
 });
 
 const $ = id => document.getElementById(id);
+
+// ---- 年份／場次清單（供整回模考、出卷模式快速勾選使用） ----
+function sittingLabelOf(bank){ return bank.sitting==="first" ? "第一次" : bank.sitting==="second" ? "第二次" : ""; }
+function bankKey(bank){ return `${bank.era}${bank.year}${bank.sitting==="first"?"-1":bank.sitting==="second"?"-2":""}`; }
+const BANKS = (window.BANK||[]).slice().sort((a,b)=> b.year-a.year || (b.sitting||"").localeCompare(a.sitting||""));
+function populateBankSel(sel){
+  BANKS.forEach(bank=>{
+    const o = document.createElement("option");
+    o.value = bankKey(bank);
+    o.textContent = `${bank.year} 年${bank.era}${sittingLabelOf(bank)?"　"+sittingLabelOf(bank):""}`;
+    sel.appendChild(o);
+  });
+}
+populateBankSel($("bankSel"));
+function qsOfBankKey(key){
+  const bank = BANKS.find(b=>bankKey(b)===key);
+  if(!bank) return [];
+  return ALL.filter(q=>q.era===bank.era && q.year===bank.year && q.sitting===bank.sitting).sort((a,b)=>a.no-b.no);
+}
+
 let current = [];
 let answered = {};
+let mode = "practice";           // practice | mock | paper
+let pickedIds = new Set();       // 出卷模式勾選
+let timerId = null;
+let timeLeft = 0;
 
 // ---- 錯題本（Leitner 間隔複習盒） ----
 const WRONGBOOK_KEY = "capEnglishWrongBook";
@@ -416,7 +518,7 @@ function shuffle(arr){
 }
 
 // ---- 渲染單題 ----
-function renderQ(q, idx){
+function renderQ(q, idx, opts={}){
   const div = document.createElement("div");
   div.className = "q"; div.dataset.id = q.id;
   const passRate = q.pass!=null ? Math.round(q.pass*100) : null;
@@ -427,6 +529,7 @@ function renderQ(q, idx){
     (q.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")+
     (passRate!=null?(()=>{const c=passRate>=70?"var(--ok)":(passRate>=40?"#a86a12":"var(--bad)"); const w=Math.max(0,Math.min(100,passRate));
       return `<span class="passtag" title="官方公布通過率 ${passRate}%，愈高愈簡單">官方通過率 <span class="passbar"><i style="width:${w}%; background:${c}"></i></span> ${passRate}%</span>`;})():"")+
+    (opts.pick?`<label style="margin-left:auto"><input type="checkbox" class="pickbox" ${pickedIds.has(q.id)?"checked":""}> 選入考卷</label>`:"")+
     `</div>`;
   const g = q.groupData;
   if(g){
@@ -442,73 +545,137 @@ function renderQ(q, idx){
     `</div>`;
   div.innerHTML = html;
 
-  div.querySelectorAll(".opt").forEach(el=>{
-    el.onclick = ()=>{
-      if(answered[q.id]) return;
-      const picked = el.dataset.k;
-      answered[q.id] = picked;
-      const ok = isCorrect(q, picked);
-      const keys = correctKeys(q);
-      div.querySelectorAll(".opt").forEach(o=>{
-        o.classList.add("locked");
-        const k = o.dataset.k, correct = keys.includes(k);
-        if(correct) o.classList.add("reveal-ok");
-        if(k===picked && correct) o.classList.add("picked-ok");
-        if(k===picked && !correct) o.classList.add("picked-bad");
-      });
-      if(ok){ wbCorrect(q.id); } else { wbWrong(q.id); }
-      saveWrongBook(); updateWrongCount();
-      const box = document.createElement("div");
-      box.className = "explainBox";
-      box.innerHTML = `<b>${ok?"✓ 答對了！":"✗ 答錯了，正解是 "+keys.join("、")}</b><br>${q.explain||""}`;
-      div.appendChild(box);
-      announce(ok ? "答對了" : `答錯了，正解是 ${keys.join("、")}`);
-      updateScorebar();
+  if(opts.interactive && !opts.pick){
+    div.querySelectorAll(".opt").forEach(el=>{
+      el.onclick = ()=>{
+        if(answered[q.id]) return;
+        const picked = el.dataset.k;
+        answered[q.id] = picked;
+        div.querySelectorAll(".opt").forEach(o=>o.classList.add("locked"));
+        if(opts.defer){
+          el.classList.add("picked-neutral");
+        }else{
+          const ok = isCorrect(q, picked);
+          const keys = correctKeys(q);
+          div.querySelectorAll(".opt").forEach(o=>{
+            const k = o.dataset.k, correct = keys.includes(k);
+            if(correct) o.classList.add("reveal-ok");
+            if(k===picked && correct) o.classList.add("picked-ok");
+            if(k===picked && !correct) o.classList.add("picked-bad");
+          });
+          if(ok){ wbCorrect(q.id); } else { wbWrong(q.id); }
+          saveWrongBook(); updateWrongCount();
+          const box = document.createElement("div");
+          box.className = "explainBox";
+          box.innerHTML = `<b>${ok?"✓ 答對了！":"✗ 答錯了，正解是 "+keys.join("、")}</b><br>${q.explain||""}`;
+          div.appendChild(box);
+          announce(ok ? "答對了" : `答錯了，正解是 ${keys.join("、")}`);
+        }
+        updateScorebar();
+      };
+    });
+  }
+  if(opts.pick){
+    div.querySelector(".pickbox").onchange = e=>{
+      e.target.checked ? pickedIds.add(q.id) : pickedIds.delete(q.id);
+      $("selCount").textContent = `已選 ${pickedIds.size} 題`;
     };
-  });
+  }
   return div;
+}
+
+// ---- 模考模式：交卷時一次揭曉答案 ----
+function revealAnswers(){
+  current.forEach(q=>{
+    const div = document.querySelector(`.q[data-id="${CSS.escape(q.id)}"]`);
+    if(!div) return;
+    if(div.querySelector(".explainBox")) return;
+    const picked = answered[q.id];
+    const keys = correctKeys(q);
+    div.querySelectorAll(".opt").forEach(o=>{
+      o.classList.add("locked");
+      o.classList.remove("picked-neutral");
+      const k = o.dataset.k, correct = keys.includes(k);
+      if(correct) o.classList.add("reveal-ok");
+      if(picked && k===picked && correct) o.classList.add("picked-ok");
+      if(picked && k===picked && !correct) o.classList.add("picked-bad");
+    });
+    const ok = picked ? isCorrect(q, picked) : false;
+    const box = document.createElement("div");
+    box.className = "explainBox";
+    box.innerHTML = `<b>${picked ? (ok?"✓ 答對了！":"✗ 答錯了，正解是 "+keys.join("、")) : "未作答，正解是 "+keys.join("、")}</b><br>${q.explain||""}`;
+    div.appendChild(box);
+  });
+}
+function stopTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
+function startTimer(seconds){
+  stopTimer();
+  timeLeft = seconds;
+  timerId = setInterval(()=>{
+    timeLeft--;
+    if(timeLeft<=0){ stopTimer(); endQuiz(); return; }
+    updateScorebar();
+  }, 1000);
 }
 
 function updateScorebar(){
   const total = current.length;
   const answeredN = current.filter(q=>answered[q.id]).length;
-  const rightN = current.filter(q=>answered[q.id] && isCorrect(q, answered[q.id])).length;
   const sb = $("scorebar");
   if(total===0){ sb.style.display="none"; return; }
   sb.style.display = "block";
   const pct = total ? Math.round(answeredN/total*100) : 0;
-  sb.innerHTML = `已作答 <b>${answeredN}</b>/${total} 題，答對 <b>${rightN}</b> 題<div class="scoreprog"><i style="width:${pct}%"></i></div>`;
+  const timeHtml = timerId ? `　剩餘時間 <b class="timer${timeLeft<=300?' low':''}">${Math.floor(timeLeft/60)}:${String(timeLeft%60).padStart(2,"0")}</b>` : "";
+  let rightHtml = "";
+  if(mode!=="mock"){
+    const rightN = current.filter(q=>answered[q.id] && isCorrect(q, answered[q.id])).length;
+    rightHtml = `，答對 <b>${rightN}</b> 題`;
+  }
+  sb.innerHTML = `已作答 <b>${answeredN}</b>/${total} 題${rightHtml}${timeHtml}<div class="scoreprog"><i style="width:${pct}%"></i></div>`;
   $("submitBtn").style.display = answeredN>0 ? "inline-block" : "none";
   $("submitBtn").textContent = answeredN>=total ? "交卷看成績" : `交卷看成績（尚有 ${total-answeredN} 題未作答）`;
 }
 
-function startQuiz(list){
+function startQuiz(list, opts={}){
   current = list;
   answered = {};
+  stopTimer();
   $("resultBox").style.display = "none";
   $("filterPanel").style.display = "none";
   $("historyPanel").style.display = "none";
+  $("paperPanel").style.display = "none";
   document.getElementById("introBox").style.display = "none";
   document.querySelector(".quickstart").style.display = "none";
   const quiz = $("quiz");
   quiz.innerHTML = "";
-  current.forEach((q,i)=>quiz.appendChild(renderQ(q,i)));
+  current.forEach((q,i)=>quiz.appendChild(renderQ(q,i,{interactive:true, defer:opts.defer})));
   $("backBtn").style.display = "inline-block";
   updateScorebar();
+  if(opts.forceTimer) startTimer(opts.forceTimer);
   window.scrollTo({top:0, behavior:"smooth"});
 }
 
 function endQuiz(){
+  stopTimer();
+  if(mode==="mock"){
+    current.forEach(q=>{
+      const picked = answered[q.id];
+      const ok = picked ? isCorrect(q, picked) : false;
+      if(ok){ wbCorrect(q.id); } else { wbWrong(q.id); }
+    });
+    saveWrongBook(); updateWrongCount();
+    revealAnswers();
+  }
   const total = current.length;
   const rightN = current.filter(q=>answered[q.id] && isCorrect(q, answered[q.id])).length;
-  const wrongQs = current.filter(q=>answered[q.id] && !isCorrect(q, answered[q.id]));
+  const wrongQs = current.filter(q=>!answered[q.id] || !isCorrect(q, answered[q.id]));
   const pct = total ? Math.round(rightN/total*100) : 0;
-  pushHistory({ts:Date.now(), right:rightN, total, pct});
+  pushHistory({ts:Date.now(), right:rightN, total, pct, mock:mode==="mock"});
   const rb = $("resultBox");
   rb.style.display = "block";
   rb.innerHTML = `<div>本回結果</div><div class="score">${rightN} / ${total}（${pct} 分）</div>`+
-    (wrongQs.length ? `<div class="wronglist"><b>答錯的題目：</b>`+
-      wrongQs.map(q=>`<div class="wrow"><span class="tag cat-${q.cat}">${CATS[q.cat]}</span>第 ${q.no} 題：你選 ${answered[q.id]}，正解 ${correctKeys(q).join("、")}</div>`).join("")+
+    (wrongQs.length ? `<div class="wronglist"><b>答錯／未作答的題目：</b>`+
+      wrongQs.map(q=>`<div class="wrow"><span class="tag cat-${q.cat}">${CATS[q.cat]}</span>第 ${q.no} 題：你選 ${answered[q.id]||"（未作答）"}，正解 ${correctKeys(q).join("、")}</div>`).join("")+
       `</div>` : `<div style="color:var(--ok); margin-top:8px">全部答對，太厲害了！</div>`)+
     `<div class="row" style="justify-content:center; margin-top:16px"><button class="btn btn-main" id="backToFilterBtn">回選題</button></div>`;
   $("backToFilterBtn").onclick = backToFilter;
@@ -517,7 +684,11 @@ function endQuiz(){
 }
 
 function backToFilter(){
+  mode = "practice";
+  stopTimer();
+  pickedIds = new Set();
   $("filterPanel").style.display = "block";
+  $("paperPanel").style.display = "none";
   $("resultBox").style.display = "none";
   $("quiz").innerHTML = "";
   $("scorebar").style.display = "none";
@@ -531,6 +702,7 @@ function backToFilter(){
 }
 
 $("startBtn").onclick = ()=>{
+  mode = "practice";
   let list = pool();
   if($("shuffleChk").checked) list = shuffle(list);
   const n = Math.max(1, parseInt($("numInput").value)||list.length);
@@ -539,6 +711,7 @@ $("startBtn").onclick = ()=>{
   startQuiz(list);
 };
 $("quickStartBtn").onclick = ()=>{
+  mode = "practice";
   activeSubs.clear();
   Object.entries(SUBCATS).forEach(([cat,subs])=>subs.forEach(s=>activeSubs.add(cat+"::"+s)));
   syncChips();
@@ -548,17 +721,266 @@ $("submitBtn").onclick = endQuiz;
 $("backBtn").onclick = backToFilter;
 
 $("wrongBtn").onclick = ()=>{
+  mode = "practice";
   const ids = Object.keys(wrongBook);
   if(ids.length===0){ alert("目前沒有錯題，繼續加油！"); return; }
   const list = ALL.filter(q=>ids.includes(q.id));
   startQuiz(shuffle(list));
 };
 $("reviewBtn").onclick = ()=>{
+  mode = "practice";
   const ids = wbDueIds();
   if(ids.length===0){ alert("今天沒有到期需要複習的錯題！"); return; }
   const list = ALL.filter(q=>ids.includes(q.id));
   startQuiz(shuffle(list));
 };
+
+// ---- 整回模考模式（依真實年份／場次原題序作答，比照官方時間計時、交卷才揭曉答案） ----
+function doMock(){
+  const key = $("bankSel").value;
+  if(!key) return alert("請先在上方選一個特定年份／場次，才能開始整回模考");
+  const qs = qsOfBankKey(key);
+  if(!qs.length) return alert("找不到這個年份／場次的題目");
+  mode = "mock";
+  const bank = BANKS.find(b=>bankKey(b)===key);
+  // 會考英語（閱讀）官方作答時間60分鐘（來源：cap.rcpet.edu.tw）；基測年份官方時間資料不全，以70分鐘估算僅供計時參考
+  const seconds = bank.era==="會考" ? 60*60 : 70*60;
+  startQuiz(qs, {defer:true, forceTimer:seconds});
+}
+$("mockBtn").onclick = doMock;
+
+// ---- 出卷模式（老師） ----
+populateBankSel($("paperBankQuick"));
+$("paperBtn").onclick = ()=>{
+  mode = "paper"; pickedIds = new Set();
+  $("filterPanel").style.display = "none";
+  $("historyPanel").style.display = "none";
+  $("resultBox").style.display = "none";
+  document.getElementById("introBox").style.display = "none";
+  document.querySelector(".quickstart").style.display = "none";
+  $("backBtn").style.display = "inline-block";
+  $("paperPanel").style.display = "block";
+  const qs = pool();
+  $("paperFilterInfo").textContent = `目前套用篩選：符合 ${qs.length} 題（可回上方「回選題」調整分類；下方也可依年份／場次快速勾選）`;
+  const box = $("quiz"); box.innerHTML = "";
+  qs.forEach(q=>box.appendChild(renderQ(q, null, {pick:true})));
+  $("selCount").textContent = "已選 0 題";
+  $("submitBtn").style.display = "none";
+  window.scrollTo({top:0, behavior:"smooth"});
+};
+$("selAllBtn").onclick = ()=>{ document.querySelectorAll(".pickbox").forEach(c=>{ c.checked=true; c.onchange({target:c}); }); };
+$("selNoneBtn").onclick = ()=>{ document.querySelectorAll(".pickbox").forEach(c=>{ c.checked=false; c.onchange({target:c}); }); };
+$("paperQuickBtn").onclick = ()=>{
+  const key = $("paperBankQuick").value;
+  document.querySelectorAll(".pickbox").forEach(c=>{
+    const id = c.closest(".q").dataset.id;
+    const q = ALL.find(x=>x.id===id);
+    const match = !key || bankKey(q)===key;
+    c.checked = match;
+    c.onchange({target:c});
+  });
+};
+
+$("linkBtn").onclick = ()=>{
+  if(!pickedIds.size) return alert("請先勾選題目");
+  const url = location.origin + location.pathname + "?q=" + [...pickedIds].join(",");
+  $("linkOut").innerHTML = `學生測驗連結（點一下複製）：<br><a href="${url}" id="quizLink">${url}</a>`;
+  $("quizLink").onclick = e=>{ e.preventDefault(); navigator.clipboard.writeText(url); e.target.textContent = "已複製！ "+url; };
+};
+
+// ---- 紙張大小（B4／A4） ----
+function setPageSize(size){
+  $("pageSizeStyle").textContent = `@page{ size:${size} portrait; margin:14mm 10mm 12mm }`;
+  safeSet("capEnglishPageSize", size);
+}
+$("pageSizeSel").value = localStorage.getItem("capEnglishPageSize") || "B4";
+setPageSize($("pageSizeSel").value);
+$("pageSizeSel").onchange = ()=>setPageSize($("pageSizeSel").value);
+
+function catStatLine(qs){
+  const byCat = {};
+  qs.forEach(q=>{ byCat[q.cat] = (byCat[q.cat]||0)+1; });
+  return Object.entries(byCat).map(([cat,n])=>`${CATS[cat]} ${n} 題`).join("／");
+}
+function detailAnswerHtml(qs){
+  return `<h2>教師詳解卷</h2>`+qs.map((q,i)=>
+    `<div class="dq"><b>${i+1}. ${q.stem}</b>　<span class="dans">正解：${q.answer}</span>`+
+    `<div class="dexp">${q.explain || "解析製作中，之後會補上"}</div></div>`
+  ).join("");
+}
+
+$("printBtn").onclick = ()=>{
+  if(!pickedIds.size) return alert("請先勾選題目");
+  const qs = ALL.filter(q=>pickedIds.has(q.id));
+  const box = $("quiz"); box.innerHTML = "";
+  qs.forEach((q,i)=>box.appendChild(renderQ(q,i,{})));
+  const statLine = catStatLine(qs);
+  $("printHeadSub").textContent = `本卷共 ${qs.length} 題　${statLine}`;
+  $("anskey").innerHTML = `<h2>教師答案卷</h2><div class="catstat">本卷共 ${qs.length} 題，各大類分布：${statLine}</div><ol>`+
+    qs.map((q,i)=>{
+      const sittingLabel = q.sitting==="first" ? "第一次" : q.sitting==="second" ? "第二次" : "";
+      return `<li>${q.answer}（${q.era}${q.year}年${sittingLabel}第${q.no}題，${CATS[q.cat]}）</li>`;
+    }).join("")+`</ol>`;
+  $("anskeyDetail").innerHTML = detailAnswerHtml(qs);
+  window.print();
+};
+
+// ---- 匯出 Word 檔（真正的 .docx：OOXML zip，雙欄用 Word 原生分節設定） ----
+let CRC_T = null;
+function crc32(u8){
+  if(!CRC_T){ CRC_T = new Int32Array(256);
+    for(let i=0;i<256;i++){ let c=i; for(let k=0;k<8;k++) c = (c&1)?(0xEDB88320^(c>>>1)):(c>>>1); CRC_T[i]=c; } }
+  let c = -1;
+  for(let i=0;i<u8.length;i++) c = CRC_T[(c^u8[i])&0xFF]^(c>>>8);
+  return (c^-1)>>>0;
+}
+function zipStore(files){
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+  files.forEach(f=>{
+    const name = enc.encode(f.name);
+    const crc = crc32(f.data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(6,0x0800,true);
+    lh.setUint32(14,crc,true); lh.setUint32(18,f.data.length,true); lh.setUint32(22,f.data.length,true);
+    lh.setUint16(26,name.length,true);
+    parts.push(new Uint8Array(lh.buffer), name, f.data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true); ch.setUint16(8,0x0800,true);
+    ch.setUint32(16,crc,true); ch.setUint32(20,f.data.length,true); ch.setUint32(24,f.data.length,true);
+    ch.setUint16(28,name.length,true); ch.setUint32(42,offset,true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + f.data.length;
+  });
+  const cdSize = central.reduce((a,p)=>a+p.length,0);
+  const eocd = new DataView(new ArrayBuffer(22));
+  eocd.setUint32(0,0x06054b50,true); eocd.setUint16(8,files.length,true); eocd.setUint16(10,files.length,true);
+  eocd.setUint32(12,cdSize,true); eocd.setUint32(16,offset,true);
+  return new Blob([...parts, ...central, new Uint8Array(eocd.buffer)]);
+}
+function escapeXml(s){
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function plainText(s){
+  return String(s||"").replace(/<br\s*\/?>/gi,"\n").replace(/<[^>]+>/g,"")
+    .replace(/&nbsp;/gi," ").replace(/&amp;/gi,"&").replace(/&lt;/gi,"<").replace(/&gt;/gi,">");
+}
+
+$("wordBtn").onclick = async ()=>{
+  if(!pickedIds.size) return alert("請先勾選題目");
+  const qs = ALL.filter(q=>pickedIds.has(q.id));
+  const statLine = catStatLine(qs);
+  const PG = $("pageSizeSel").value==="A4" ? {w:11906,h:16838} : {w:14570,h:20636};
+  const btn = $("wordBtn");
+  btn.disabled = true; btn.textContent = "產生中…";
+  try{
+    const media = [];
+    const imgInfo = {};
+    for(const q of qs){
+      if(!q.image) continue;
+      try{
+        const blob = await (await fetch(q.image)).blob();
+        const data = new Uint8Array(await blob.arrayBuffer());
+        const dim = await new Promise(res=>{
+          const im = new Image();
+          im.onload = ()=>res({w:im.naturalWidth||400, h:im.naturalHeight||300});
+          im.onerror = ()=>res({w:400, h:300});
+          im.src = URL.createObjectURL(blob);
+        });
+        const ext = /\.jpe?g$/i.test(q.image) ? "jpg" : "png";
+        const n = media.length + 1;
+        media.push({name:`word/media/img${n}.${ext}`, data});
+        const maxW = 3800000;
+        let cx = dim.w*9525, cy = dim.h*9525;
+        if(cx > maxW){ cy = Math.round(cy*maxW/cx); cx = maxW; }
+        imgInfo[q.id] = {rid:`rId${n+10}`, cx, cy, n};
+      }catch(e){ /* 圖抓不到就略過該圖 */ }
+    }
+
+    const FONT = '<w:rFonts w:ascii="PMingLiU" w:eastAsia="PMingLiU" w:hAnsi="PMingLiU"/>';
+    const run = (t,o={})=>{
+      const rpr = `<w:rPr>${FONT}${o.b?"<w:b/>":""}${o.color?`<w:color w:val="${o.color}"/>`:""}<w:sz w:val="${o.sz||24}"/><w:szCs w:val="${o.sz||24}"/></w:rPr>`;
+      return `<w:r>${rpr}`+String(t).split("\n").map((l,i)=>(i?"<w:br/>":"")+`<w:t xml:space="preserve">${escapeXml(l)}</w:t>`).join("")+`</w:r>`;
+    };
+    const par = (content, ppr="")=>`<w:p>${ppr?`<w:pPr>${ppr}</w:pPr>`:""}${content}</w:p>`;
+    const CENTER = '<w:jc w:val="center"/>';
+    const BOX = '<w:pBdr><w:top w:val="single" w:sz="4" w:space="3" w:color="999999"/><w:left w:val="single" w:sz="4" w:space="3" w:color="999999"/><w:bottom w:val="single" w:sz="4" w:space="3" w:color="999999"/><w:right w:val="single" w:sz="4" w:space="3" w:color="999999"/></w:pBdr><w:shd w:val="clear" w:color="auto" w:fill="F5F5F5"/><w:spacing w:before="60" w:after="60"/>';
+    const sect = (cols, cont)=>`<w:sectPr>${cont?'<w:type w:val="continuous"/>':""}<w:pgSz w:w="${PG.w}" w:h="${PG.h}"/><w:pgMar w:top="794" w:right="567" w:bottom="680" w:left="567" w:header="425" w:footer="425" w:gutter="0"/>${cols===2?'<w:cols w:num="2" w:space="510" w:sep="1"/>':'<w:cols w:space="510"/>'}</w:sectPr>`;
+    const drawing = info=>`<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${info.cx}" cy="${info.cy}"/><wp:docPr id="${info.n}" name="img${info.n}"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="${info.n}" name="img${info.n}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${info.rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${info.cx}" cy="${info.cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`;
+    const tbl = html=>{
+      const rows = [...new DOMParser().parseFromString(html,"text/html").querySelectorAll("tr")];
+      const BORD = "<w:tblBorders>"+["top","left","bottom","right","insideH","insideV"].map(s=>`<w:${s} w:val="single" w:sz="4" w:color="555555"/>`).join("")+"</w:tblBorders>";
+      const trs = rows.map(tr=>"<w:tr>"+[...tr.querySelectorAll("th,td")].map(c=>{
+        const th = c.tagName==="TH";
+        return `<w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/>${th?'<w:shd w:val="clear" w:color="auto" w:fill="EFE2C4"/>':""}<w:vAlign w:val="center"/></w:tcPr><w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="20" w:after="20"/></w:pPr>${run(plainText(c.innerHTML)||" ",{sz:22,b:th?1:0})}</w:p></w:tc>`;
+      }).join("")+"</w:tr>").join("");
+      return `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${BORD}<w:tblLayout w:type="autofit"/></w:tblPr>${trs}</w:tbl><w:p><w:pPr><w:spacing w:after="40"/></w:pPr></w:p>`;
+    };
+    const pushHtml = (html, o={})=>{
+      let prefix = o.prefix||"";
+      String(html||"").split(/(<table[\s\S]*?<\/table>)/i).forEach(seg=>{
+        if(!seg) return;
+        if(/^<table/i.test(seg)){ if(prefix){ ps.push(par(run(prefix,o.ro||{}), o.ppr||"")); prefix=""; } ps.push(tbl(seg)); }
+        else{ const t = plainText(seg).replace(/\n+$/,""); if(t.trim()||prefix){ ps.push(par(run(prefix+t,o.ro||{}), o.ppr||"")); prefix=""; } }
+      });
+    };
+
+    const ps = [];
+    ps.push(par(run("英語科練習測驗卷",{b:1,sz:32}), CENTER));
+    ps.push(par(run(`本卷共 ${qs.length} 題　${statLine}`,{sz:21}), CENTER));
+    ps.push(par(run("班級：＿＿＿＿＿＿　　座號：＿＿＿＿　　姓名：＿＿＿＿＿＿＿＿＿＿"), sect(1,false)));
+    let lastGroup = null;
+    qs.forEach((q,i)=>{
+      const g = q.groupData;
+      if(g && g.passage !== lastGroup){ pushHtml(g.passage, {ro:{sz:22}, ppr:BOX}); lastGroup = g.passage; }
+      if(!g) lastGroup = null;
+      pushHtml(q.stem, {prefix:`${i+1}. `, ro:{b:1}, ppr:'<w:keepNext/><w:spacing w:before="80" w:after="40"/>'});
+      if(q.image && imgInfo[q.id]) ps.push(par(drawing(imgInfo[q.id])));
+      ["A","B","C","D"].forEach(k=>ps.push(par(run(`（${k}）${plainText(q.options[k])}`), '<w:spacing w:after="20"/>')));
+    });
+    ps.push(par("", sect(2,true)));
+    ps.push(par(run("教師答案卷",{b:1,sz:28})));
+    ps.push(par(run(`本卷共 ${qs.length} 題，各大類分布：${statLine}`,{sz:22}), '<w:spacing w:after="120"/>'));
+    qs.forEach((q,i)=>{
+      const sittingLabel = q.sitting==="first" ? "第一次" : q.sitting==="second" ? "第二次" : "";
+      ps.push(par(run(`${i+1}. ${q.answer}（${q.era}${q.year}年${sittingLabel}第${q.no}題，${CATS[q.cat]}）`), '<w:spacing w:after="20"/>'));
+    });
+    ps.push(par(run("教師詳解卷",{b:1,sz:28}), '<w:pageBreakBefore/>'));
+    qs.forEach((q,i)=>{
+      ps.push(par(run(`${i+1}. ${plainText(q.stem.replace(/<table[\s\S]*?<\/table>/gi,"（表格見題目卷）"))}`,{b:1})+run(`　正解：${q.answer}`,{b:1,color:"B8860B"}), '<w:keepNext/><w:spacing w:before="120" w:after="40"/>'));
+      ps.push(par(run(plainText(q.explain||"解析製作中，之後會補上"),{sz:22})));
+    });
+
+    const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body>${ps.join("")}${sect(1,false)}</w:body></w:document>`;
+    const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="jpg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;
+    const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+    const docRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">`+
+      media.map((m,idx)=>`<Relationship Id="rId${idx+11}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${m.name.split("/").pop()}"/>`).join("")+`</Relationships>`;
+
+    const enc = new TextEncoder();
+    const blob = zipStore([
+      {name:"[Content_Types].xml", data:enc.encode(contentTypes)},
+      {name:"_rels/.rels", data:enc.encode(rootRels)},
+      {name:"word/document.xml", data:enc.encode(docXml)},
+      {name:"word/_rels/document.xml.rels", data:enc.encode(docRels)},
+      ...media
+    ]);
+    downloadDocx(blob);
+  } finally {
+    btn.disabled = false; btn.textContent = "下載 Word 檔";
+  }
+};
+function downloadDocx(blob){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const d = new Date();
+  const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+  a.href = url; a.download = `英語科練習測驗卷-${stamp}.docx`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
 
 $("historyBtn").onclick = ()=>{ renderHistory(); $("historyPanel").style.display="block"; $("historyPanel").scrollIntoView({behavior:"smooth"}); };
 $("historyCloseBtn").onclick = ()=>{ $("historyPanel").style.display="none"; };
@@ -597,6 +1019,14 @@ $("importFile").onchange = (e)=>{
 };
 
 updateWrongCount();
+
+// ---- 老師出卷連結進入測驗 ----
+const urlParams = new URLSearchParams(location.search);
+if(urlParams.get("q")){
+  const ids = urlParams.get("q").split(",");
+  const qs = ids.map(id=>ALL.find(q=>q.id===id)).filter(Boolean);
+  if(qs.length){ mode = "practice"; startQuiz(qs); }
+}
 });
 </script>
 </body>

@@ -64,6 +64,7 @@
   .catdot{width:10px; height:10px; border-radius:3px; display:inline-block; flex-shrink:0}
   .expandToggle{margin-left:auto}
   .row{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:12px; font-size:.92rem}
+  .morerow{display:none; margin-top:8px}
   select,input[type=number]{font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:#eafaf7; font-size:16px}
   .btn{font:inherit; border:0; border-radius:4px 12px 4px 12px; padding:11px 22px; cursor:pointer; font-size:1rem;
     -webkit-tap-highlight-color:transparent; touch-action:manipulation; min-height:44px}
@@ -237,7 +238,10 @@
   </div>
 
   <div class="panel no-print" id="filterPanel">
-    <div class="toolrow"><h2 style="margin-bottom:0">選擇範圍</h2><span class="gtoggle" id="allToggle">全選／清除</span></div>
+    <div class="toolrow"><h2 style="margin-bottom:0">選擇範圍</h2><span class="gtoggle" id="advToggle" role="button" tabindex="0" aria-expanded="false" aria-controls="filterBody">展開進階篩選 ▾</span></div>
+    <div class="count" id="filterSummary" style="margin-top:0; margin-bottom:10px"></div>
+    <div id="filterBody" style="display:none">
+    <div class="toolrow" id="catToolrow" style="margin-bottom:6px"><span style="font-size:.85rem; color:var(--muted)">勾選想練的分類，或直接調整下方條件</span><span class="gtoggle" id="allToggle">全選／清除</span></div>
     <div id="catChips" class="chips"></div>
     <div class="row" style="border-top:1px dashed var(--line); padding-top:12px">
       <label>題數：<input type="number" id="numInput" min="1" value="1530" style="width:70px"></label>
@@ -245,13 +249,17 @@
       <label>年份／場次：<select id="bankSel"><option value="">（整回模考需先選）</option></select></label>
     </div>
     <div class="count" id="countInfo"></div>
+    </div>
     <div class="row">
       <button class="btn btn-outline" id="startBtn">開始練習</button>
       <button class="btn btn-main" id="reviewBtn" style="display:none">📅 今日該複習 <b>0</b> 題</button>
-      <button class="btn btn-sub" id="wrongBtn">錯題本（<span id="wrongCount">0</span>）</button>
-      <button class="btn btn-sub" id="historyBtn">學習歷程</button>
+      <span class="gtoggle" id="moreToggle">更多功能 ▾</span>
+    </div>
+    <div class="row morerow" id="moreRow">
       <button class="btn btn-sub" id="mockBtn">整回模考（需先選年份／場次）</button>
       <button class="btn btn-sub" id="paperBtn">出卷模式（老師）</button>
+      <button class="btn btn-sub" id="wrongBtn">錯題本（<span id="wrongCount">0</span>）</button>
+      <button class="btn btn-sub" id="historyBtn">學習歷程</button>
     </div>
   </div>
 
@@ -464,6 +472,7 @@ function syncChips(){
   document.querySelectorAll("#catChips .chip[data-key]").forEach(c=>
     c.classList.toggle("on", activeSubs.has(c.dataset.key)));
   updateCount();
+  updateFilterSummary();
 }
 Object.entries(SUBCATS).forEach(([cat,subs])=>{
   const box = document.createElement("div");
@@ -510,6 +519,46 @@ function pool(){
 }
 function updateCount(){ $("countInfo").textContent = `符合條件共 ${pool().length} 題（題庫總計 ${ALL.length} 題）`; }
 updateCount();
+
+// ---- 進階篩選收合（預設收起，降低首頁資訊量） ----
+function toggleAdvFilter(){
+  const body = $("filterBody");
+  const show = body.style.display === "none";
+  body.style.display = show ? "block" : "none";
+  $("advToggle").textContent = show ? "收合進階篩選 ▴" : "展開進階篩選 ▾";
+  $("advToggle").setAttribute("aria-expanded", String(show));
+  updateFilterSummary();
+}
+$("advToggle").onclick = toggleAdvFilter;
+$("advToggle").onkeydown = e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggleAdvFilter(); } };
+
+// ---- 更多功能收合 ----
+$("moreToggle").onclick = ()=>{
+  const row = $("moreRow");
+  const show = row.style.display !== "flex";
+  row.style.display = show ? "flex" : "none";
+  $("moreToggle").textContent = show ? "更多功能 ▴" : "更多功能 ▾";
+};
+
+// ---- 篩選摘要（收合時一眼看到目前條件） ----
+function updateFilterSummary(){
+  const el = $("filterSummary"); if(!el) return;
+  const expanded = $("filterBody").style.display !== "none";
+  if(expanded){ el.style.display = "none"; return; }
+  el.style.display = "block";
+  const bankKey = $("bankSel").value;
+  const items = [
+    `年份／場次 ${bankKey || "全部"}`,
+    `分類 ${activeSubs.size}/${totalSubs} 類`,
+    `每次 ${Number($("numInput").value)||1530} 題`,
+    $("shuffleChk").checked ? "隨機出題" : "依序出題"
+  ];
+  el.textContent = items.join(" ・ ");
+}
+$("numInput").oninput = updateFilterSummary;
+$("shuffleChk").onchange = updateFilterSummary;
+$("bankSel").onchange = updateFilterSummary;
+updateFilterSummary();
 
 function shuffle(arr){
   const a = arr.slice();

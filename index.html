@@ -247,7 +247,9 @@
       <label>題數：<input type="number" id="numInput" min="1" value="1530" style="width:70px"></label>
       <label><input type="checkbox" id="shuffleChk" checked> 隨機出題</label>
       <label>年份／場次：<select id="bankSel"><option value="">（整回模考需先選）</option></select></label>
+      <label>難度：<select id="diffSel"><option value="all">不限</option><option value="easy">較簡單（通過率≥70%）</option><option value="mid">中等（40–70%）</option><option value="hard">較難（&lt;40%）</option></select></label>
     </div>
+    <div class="count" style="margin-top:0">難度僅涵蓋有官方通過率的 103～115 年會考題（共 <span id="diffCoverage"></span> 題），90～102 年基測因心測中心未公布通過率，不歸入任何難度區間。</div>
     <div class="count" id="countInfo"></div>
     </div>
     <div class="row">
@@ -510,14 +512,26 @@ $("allToggle").onclick = ()=>{
   syncChips();
 };
 function catActive(cat){ return (SUBCATS[cat]||[]).some(s=>activeSubs.has(cat+"::"+s)); }
+function inDiffRange(q){
+  const d = $("diffSel").value;
+  if(d==="all") return true;
+  if(q.pass==null) return false; // 無官方通過率的題目不歸入任何難度區間，避免難度篩選失真
+  if(d==="easy") return q.pass>=0.7;
+  if(d==="mid") return q.pass>=0.4 && q.pass<0.7;
+  if(d==="hard") return q.pass<0.4;
+  return true;
+}
 function pool(){
   return ALL.filter(q => {
     const wl = SUBCATS[q.cat]||[];
     const knownTags = (q.tags||[]).filter(t=>wl.includes(t));
-    return knownTags.length ? knownTags.some(t=>activeSubs.has(q.cat+"::"+t)) : catActive(q.cat);
+    const catOK = knownTags.length ? knownTags.some(t=>activeSubs.has(q.cat+"::"+t)) : catActive(q.cat);
+    return catOK && inDiffRange(q);
   });
 }
 function updateCount(){ $("countInfo").textContent = `符合條件共 ${pool().length} 題（題庫總計 ${ALL.length} 題）`; }
+$("diffCoverage").textContent = ALL.filter(q=>q.pass!=null).length;
+$("diffSel").onchange = ()=>{ updateCount(); updateFilterSummary(); };
 updateCount();
 
 // ---- 進階篩選收合（預設收起，降低首頁資訊量） ----
@@ -547,11 +561,13 @@ function updateFilterSummary(){
   if(expanded){ el.style.display = "none"; return; }
   el.style.display = "block";
   const bankKey = $("bankSel").value;
+  const d = $("diffSel");
   const items = [
     `年份／場次 ${bankKey || "全部"}`,
     `分類 ${activeSubs.size}/${totalSubs} 類`,
     `每次 ${Number($("numInput").value)||1530} 題`,
-    $("shuffleChk").checked ? "隨機出題" : "依序出題"
+    $("shuffleChk").checked ? "隨機出題" : "依序出題",
+    d.value==="all" ? "難度不限" : d.options[d.selectedIndex].textContent
   ];
   el.textContent = items.join(" ・ ");
 }

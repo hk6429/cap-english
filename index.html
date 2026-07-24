@@ -130,6 +130,8 @@
   .passtag{display:inline-flex; align-items:center; gap:5px; white-space:nowrap}
   .passbar{display:inline-block; width:44px; height:8px; background:#cfe9e2; border-radius:4px; overflow:hidden}
   .passbar i{display:block; height:100%; border-radius:4px}
+  .qtable{border-collapse:collapse; margin:10px 0; font-size:.9rem}
+  .qtable th,.qtable td{border:1px solid var(--line); padding:5px 10px; text-align:center; vertical-align:top}
   .footer{color:var(--muted); font-size:.78rem; text-align:center; padding:20px 10px 60px}
   .flinks{display:flex; flex-wrap:wrap; gap:4px 18px; justify-content:center; margin-top:8px}
   .result{background:#dff3ee; border:2px solid var(--seal); border-radius:4px 16px 4px 16px; padding:18px; margin:14px 0; text-align:center; font-size:1.1rem; display:none}
@@ -259,10 +261,12 @@
     <div class="toolrow" id="catToolrow" style="margin-bottom:6px"><span style="font-size:.85rem; color:var(--muted)">勾選想練的分類，或直接調整下方條件</span><span class="gtoggle" id="allToggle">全選／清除</span></div>
     <div id="catChips" class="chips"></div>
     <div class="row" style="border-top:1px dashed var(--line); padding-top:12px">
-      <label>題數：<input type="number" id="numInput" min="1" value="1620" style="width:70px"></label>
+      <label>題數：<input type="number" id="numInput" min="1" value="10" style="width:70px"></label>
       <label><input type="checkbox" id="shuffleChk" checked> 隨機出題</label>
       <label>年份／場次：<select id="bankSel"><option value="">（整回模考需先選）</option></select></label>
+      <label><input type="checkbox" id="timedChk"> 計時模式（比照會考英語閱讀每題約83.7秒）</label>
       <label>難度：<select id="diffSel"><option value="all">不限</option><option value="easy">較簡單（通過率≥70%）</option><option value="mid">中等（40–70%）</option><option value="hard">較難（&lt;40%）</option></select></label>
+      <label><input type="checkbox" id="diffSortChk"> 由易到難排序</label>
     </div>
     <div class="count" style="margin-top:0">難度僅涵蓋有官方通過率的 103～115 年會考題（共 <span id="diffCoverage"></span> 題），90～102 年基測因心測中心未公布通過率，不歸入任何難度區間。</div>
     <div class="count" id="countInfo"></div>
@@ -275,6 +279,7 @@
     <div class="row morerow" id="moreRow">
       <button class="btn btn-sub" id="mockBtn">整回模考（需先選年份／場次）</button>
       <button class="btn btn-sub" id="paperBtn">出卷模式（老師）</button>
+      <button class="btn btn-sub" id="rankBtn">難度排行榜</button>
       <button class="btn btn-sub" id="wrongBtn">錯題本（<span id="wrongCount">0</span>）</button>
       <button class="btn btn-sub" id="historyBtn">學習歷程</button>
     </div>
@@ -289,6 +294,26 @@
       <input type="file" id="importFile" accept="application/json" style="display:none">
     </div>
     <div id="historyList" style="font-size:.9rem"></div>
+  </div>
+
+  <div class="panel no-print" id="rankPanel" style="display:none">
+    <div class="toolrow"><h2 style="margin-bottom:0">難度排行榜</h2><span class="gtoggle" id="rankCloseBtn">關閉</span></div>
+    <p style="font-size:.85rem; color:var(--muted); margin-bottom:8px">
+      通過率＝該題全國考生答對比例，愈高愈簡單；「待加強組誘答差」比較錯誤選項在待加強組與全體考生的選答比例差距。
+    </p>
+    <div class="row">
+      <label>年度：<select id="rankYearSel"></select></label>
+      <label>排行：<select id="rankModeSel">
+        <option value="hard10">最難前 10 題（通過率低）</option>
+        <option value="easy10">最簡單前 10 題（通過率高）</option>
+        <option value="lowLure">最會騙待加強組的題目</option>
+        <option value="allEasyToHard">全部：由易到難</option>
+        <option value="allHardToEasy">全部：由難到易</option>
+      </select></label>
+      <button class="btn btn-main" id="rankPracticeBtn">用這批題目開始練習</button>
+    </div>
+    <p id="rankNote" style="font-size:.8rem; color:var(--muted); margin:6px 0"></p>
+    <div style="overflow-x:auto"><table class="qtable" id="rankTable" style="width:100%"></table></div>
   </div>
 
   <div class="panel no-print" id="paperPanel" style="display:none">
@@ -397,11 +422,22 @@ function optionDistributionRows(q, group="all"){
     return `<div class="optchart-row"><span class="optchart-name">(${k})${label}</span><span class="optchart-bar"><i class="optchart-fill" style="width:${Math.max(0,Math.min(100,pct))}%;${isCorrectOption?"background:var(--ok)":""}"></i></span><span class="optchart-num">${pct.toFixed(1)}%</span></div>`;
   }).join("");
 }
+function lowLureAnalysis(q){
+  if(!q.opt || !q.low?.opt) return null;
+  const wrong = ["A","B","C","D"].filter(k=>!correctKeys(q).includes(k));
+  return wrong.map(option=>({
+    option,
+    low:Number(q.low.opt[option]||0),
+    gap:Number(q.low.opt[option]||0)-Number(q.opt[option]||0)
+  })).sort((a,b)=>b.gap-a.gap)[0] || null;
+}
 function optionDistributionHtml(q){
   if(!q.opt) return "";
+  const allSource = q.optSource?.all?.label || "英語科試題分析";
   const toggle = q.low?.opt ? `<div class="opt-group-toggle" role="group" aria-label="切換作答分布群組"><button type="button" class="active" data-opt-group="all" aria-pressed="true">全體</button><button type="button" data-opt-group="low" aria-pressed="false">待加強</button></div>` : "";
-  const source = q.optSource?.all?.label || "英語科試題分析";
-  return `<div class="opt-stats" data-qid="${q.id}"><b class="opt-chart-title">全體考生四選項作答分布</b>${toggle}<div class="opt-chart">${optionDistributionRows(q)}</div><div class="opt-source-note">來源：${source}；未作答與複選未列入，四項合計可能略低於 100%。</div></div>`;
+  const lure = lowLureAnalysis(q);
+  const lureNote = lure && lure.gap>0 ? `<div class="opt-lure-note">⚠ 待加強組有 ${lure.low.toFixed(1)}% 選（${lure.option}），比全體高 ${lure.gap.toFixed(1)} 個百分點 → 這題的關鍵迷思在（${lure.option}）</div>` : "";
+  return `<div class="opt-stats" data-qid="${q.id}"><b class="opt-chart-title">全體考生四選項作答分布</b>${toggle}<div class="opt-chart">${optionDistributionRows(q)}</div><div class="opt-source-note" data-opt-source>來源：${allSource}；未作答與複選未列入，四項合計可能略低於 100%。</div>${lureNote}</div>`;
 }
 function explanationHtml(q, heading){
   return `<b>${heading}</b><br>${q.explain||""}${optionDistributionHtml(q)}`;
@@ -562,16 +598,19 @@ function inDiffRange(q){
   return true;
 }
 function pool(){
+  const selectedBank = $("bankSel").value;
   return ALL.filter(q => {
     const wl = SUBCATS[q.cat]||[];
     const knownTags = (q.tags||[]).filter(t=>wl.includes(t));
     const catOK = knownTags.length ? knownTags.some(t=>activeSubs.has(q.cat+"::"+t)) : catActive(q.cat);
-    return catOK && inDiffRange(q);
+    const bankOK = !selectedBank || bankKey(q)===selectedBank;
+    return catOK && bankOK && inDiffRange(q);
   });
 }
 function updateCount(){ $("countInfo").textContent = `符合條件共 ${pool().length} 題（題庫總計 ${ALL.length} 題）`; }
 $("diffCoverage").textContent = ALL.filter(q=>q.pass!=null).length;
 $("diffSel").onchange = ()=>{ updateCount(); updateFilterSummary(); };
+$("bankSel").onchange = ()=>{ updateCount(); updateFilterSummary(); };
 updateCount();
 
 // ---- 進階篩選收合（預設收起，降低首頁資訊量） ----
@@ -605,15 +644,15 @@ function updateFilterSummary(){
   const items = [
     `年份／場次 ${bankKey || "全部"}`,
     `分類 ${activeSubs.size}/${totalSubs} 類`,
-    `每次 ${Number($("numInput").value)||1620} 題`,
-    $("shuffleChk").checked ? "隨機出題" : "依序出題",
+    `每次 ${Number($("numInput").value)||10} 題`,
+    $("diffSortChk").checked ? "由易到難" : ($("shuffleChk").checked ? "隨機出題" : "依序出題"),
     d.value==="all" ? "難度不限" : d.options[d.selectedIndex].textContent
   ];
   el.textContent = items.join(" ・ ");
 }
 $("numInput").oninput = updateFilterSummary;
 $("shuffleChk").onchange = updateFilterSummary;
-$("bankSel").onchange = updateFilterSummary;
+$("diffSortChk").onchange = updateFilterSummary;
 updateFilterSummary();
 
 function shuffle(arr){
@@ -722,7 +761,7 @@ document.addEventListener("click", e=>{
   box.querySelector(".opt-chart").innerHTML = optionDistributionRows(q, group);
   box.querySelector(".opt-chart-title").textContent = `${group==="low"?"待加強組":"全體考生"}四選項作答分布`;
   const label = q.optSource?.[group]?.label || q.optSource?.all?.label || "英語科試題分析";
-  box.querySelector(".opt-source-note").textContent = `來源：${label}；未作答與複選未列入，四項合計可能略低於 100%。`;
+  box.querySelector("[data-opt-source]").textContent = `來源：${label}；未作答與複選未列入，四項合計可能略低於 100%。`;
   box.querySelectorAll("[data-opt-group]").forEach(item=>{
     const active = item.dataset.optGroup===group;
     item.classList.toggle("active", active);
@@ -765,6 +804,7 @@ function startQuiz(list, opts={}){
   $("resultBox").style.display = "none";
   $("filterPanel").style.display = "none";
   $("historyPanel").style.display = "none";
+  $("rankPanel").style.display = "none";
   $("paperPanel").style.display = "none";
   document.getElementById("introBox").style.display = "none";
   document.querySelector(".quickstart").style.display = "none";
@@ -774,6 +814,7 @@ function startQuiz(list, opts={}){
   $("backBtn").style.display = "inline-block";
   updateScorebar();
   if(opts.forceTimer) startTimer(opts.forceTimer);
+  else if($("timedChk").checked) startTimer(Math.round(current.length*83.7)); // 會考英語閱讀 60 分鐘／43 題，約 83.7 秒／題
   window.scrollTo({top:0, behavior:"smooth"});
 }
 
@@ -811,6 +852,7 @@ function backToFilter(){
   pickedIds = new Set();
   $("filterPanel").style.display = "block";
   $("paperPanel").style.display = "none";
+  $("rankPanel").style.display = "none";
   $("resultBox").style.display = "none";
   $("quiz").innerHTML = "";
   $("scorebar").style.display = "none";
@@ -826,7 +868,8 @@ function backToFilter(){
 $("startBtn").onclick = ()=>{
   mode = "practice";
   let list = pool();
-  if($("shuffleChk").checked) list = shuffle(list);
+  if($("diffSortChk").checked) list = list.slice().sort((a,b)=>(b.pass??-1)-(a.pass??-1));
+  else if($("shuffleChk").checked) list = shuffle(list);
   const n = Math.max(1, parseInt($("numInput").value)||list.length);
   list = list.slice(0, n);
   if(list.length===0){ alert("目前沒有符合條件的題目，請調整篩選"); return; }
@@ -877,6 +920,7 @@ $("paperBtn").onclick = ()=>{
   mode = "paper"; pickedIds = new Set();
   $("filterPanel").style.display = "none";
   $("historyPanel").style.display = "none";
+  $("rankPanel").style.display = "none";
   $("resultBox").style.display = "none";
   document.getElementById("introBox").style.display = "none";
   document.querySelector(".quickstart").style.display = "none";
@@ -1104,7 +1148,64 @@ function downloadDocx(blob){
   URL.revokeObjectURL(url);
 }
 
-$("historyBtn").onclick = ()=>{ renderHistory(); $("historyPanel").style.display="block"; $("historyPanel").scrollIntoView({behavior:"smooth"}); };
+// ---- 難度排行榜（官方通過率＋待加強組誘答差） ----
+const STAT_YEARS = [...new Set(ALL.filter(q=>q.pass!=null).map(q=>q.year))].sort((a,b)=>b-a);
+STAT_YEARS.forEach(y=>{
+  const o=document.createElement("option");
+  o.value=String(y);
+  o.textContent=`${y} 年`;
+  $("rankYearSel").appendChild(o);
+});
+if(STAT_YEARS.length){
+  $("rankYearSel").insertAdjacentHTML("afterbegin", `<option value="all">全部（${STAT_YEARS[STAT_YEARS.length-1]}–${STAT_YEARS[0]} 年）</option>`);
+}
+$("rankYearSel").value="all";
+let rankList=[];
+function renderRank(){
+  const year=$("rankYearSel").value;
+  const rankMode=$("rankModeSel").value;
+  let qs=ALL.filter(q=>q.pass!=null && (year==="all" || q.year===Number(year)));
+  const byPass=(a,b)=>a.pass-b.pass || b.year-a.year || a.no-b.no;
+  if(rankMode==="hard10") qs=qs.sort(byPass).slice(0,10);
+  else if(rankMode==="easy10") qs=qs.sort((a,b)=>-byPass(a,b)).slice(0,10);
+  else if(rankMode==="lowLure") qs=qs.filter(q=>lowLureAnalysis(q)).sort((a,b)=>lowLureAnalysis(b).gap-lowLureAnalysis(a).gap || b.year-a.year || a.no-b.no);
+  else if(rankMode==="allEasyToHard") qs=qs.sort((a,b)=>-byPass(a,b));
+  else qs=qs.sort(byPass);
+  rankList=qs;
+  $("rankNote").textContent=`共 ${qs.length} 題`
+    +(rankMode==="lowLure" ? "；此模式只納入有全體與待加強組四選項比例的 108–114 年題目" : "；僅納入有官方通過率的會考題");
+  $("rankTable").innerHTML =
+    `<thead><tr><th>年度</th><th>題號</th><th>分類</th><th>通過率</th>${rankMode==="lowLure"?"<th>最大誘答差</th>":""}<th>題目</th></tr></thead><tbody>`+
+    qs.map(q=>{
+      const plain=(q.stem||"").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+      const lure=rankMode==="lowLure" ? lowLureAnalysis(q) : null;
+      return `<tr><td>${q.year}</td><td>${q.no}</td><td>${CATS[q.cat]||"—"}</td><td>${Math.round(q.pass*100)}%</td>`
+        +(lure?`<td>（${lure.option}）+${lure.gap.toFixed(1)}%</td>`:"")
+        +`<td style="text-align:left">${plain.slice(0,55)}${plain.length>55?"…":""}</td></tr>`;
+    }).join("")+`</tbody>`;
+}
+$("rankBtn").onclick=()=>{
+  renderRank();
+  $("rankPanel").style.display="block";
+  $("paperPanel").style.display="none";
+  $("historyPanel").style.display="none";
+  $("rankPanel").scrollIntoView({behavior:"smooth"});
+};
+$("rankCloseBtn").onclick=()=>{ $("rankPanel").style.display="none"; };
+["rankYearSel","rankModeSel"].forEach(id=>{ $(id).onchange=renderRank; });
+$("rankPracticeBtn").onclick=()=>{
+  if(!rankList.length) return alert("目前條件下沒有題目");
+  mode="practice";
+  startQuiz(rankList.slice());
+};
+
+$("historyBtn").onclick = ()=>{
+  renderHistory();
+  $("historyPanel").style.display="block";
+  $("rankPanel").style.display="none";
+  $("paperPanel").style.display="none";
+  $("historyPanel").scrollIntoView({behavior:"smooth"});
+};
 $("historyCloseBtn").onclick = ()=>{ $("historyPanel").style.display="none"; };
 $("clearBtn").onclick = ()=>{
   if(!confirm("確定要清除本機所有練習紀錄與錯題本嗎？此動作無法復原。")) return;

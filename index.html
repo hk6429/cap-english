@@ -85,6 +85,9 @@
   .passage p{margin-bottom:.6em}
   .passage p:last-child{margin-bottom:0}
   .passage-title{font-size:.78rem; color:var(--muted); margin-bottom:6px}
+  .passage table{border-collapse:collapse; width:100%; margin:.75rem 0; background:var(--card)}
+  .passage th,.passage td{border:1px solid var(--line); padding:.5rem .625rem; text-align:left; vertical-align:top}
+  .passage th{background:#dff3ee; color:var(--accent2)}
   .stem{font-weight:600; margin-bottom:10px; white-space:pre-line}
   .qimg{max-width:100%; border:1px solid var(--line); border-radius:8px; margin:8px 0; display:block}
   .opts{display:grid; gap:8px}
@@ -112,6 +115,18 @@
   .opt.reveal-ok:not(.picked-ok):not(.picked-bad) .otext::after{content:"　✓ 正解"; color:var(--ok); font-weight:700; font-size:.82em; white-space:nowrap}
   .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
   .explainBox{margin-top:10px; padding:10px 12px; background:#dff3ee; border-radius:0 8px 8px 0; border-left:3px solid var(--ok); font-size:.88rem; color:var(--accent2)}
+  .opt-stats{margin-top:10px; padding:10px 12px; background:var(--card); border:1px solid var(--line); border-radius:8px; color:var(--ink)}
+  .opt-chart-title{display:block; color:var(--accent2); margin-bottom:6px}
+  .optchart-row{display:grid; grid-template-columns:minmax(112px,auto) 1fr 48px; gap:8px; align-items:center; padding:3px 0}
+  .optchart-name{font-size:.82rem; white-space:nowrap}
+  .optchart-bar{height:10px; background:#cfe9e2; border-radius:999px; overflow:hidden}
+  .optchart-fill{display:block; height:100%; background:var(--accent); border-radius:999px}
+  .optchart-num{text-align:right; font-variant-numeric:tabular-nums; font-size:.82rem}
+  .opt-group-toggle{display:flex; gap:6px; margin:6px 0}
+  .opt-group-toggle button{border:1px solid var(--line); background:#eafaf7; color:var(--accent2); border-radius:999px; padding:4px 10px; cursor:pointer}
+  .opt-group-toggle button.active{background:var(--accent); border-color:var(--accent); color:#fff}
+  .opt-source-note,.opt-lure-note{font-size:.76rem; color:var(--muted); margin-top:6px}
+  .opt-lure-note{color:#8a4b12}
   .passtag{display:inline-flex; align-items:center; gap:5px; white-space:nowrap}
   .passbar{display:inline-block; width:44px; height:8px; background:#cfe9e2; border-radius:4px; overflow:hidden}
   .passbar i{display:block; height:100%; border-radius:4px}
@@ -227,9 +242,9 @@
 <div class="scorebar" id="scorebar"></div>
 
 <div class="wrap" id="main">
-  <noscript><div style="max-width:860px;margin:12px auto;padding:12px 16px;background:#dff3ee;border-radius:8px;font-size:.9rem">本站收錄國中基測與教育會考英語科（閱讀）90～115 年試題共 1530 題選擇題，依108課綱學習內容分三類（詞彙 Ba、句型文法 Bb、篇章閱讀 Bc，含克漏字），每題附心測中心官方通過率與詳解（基測年份無官方通過率）。本站需開啟 JavaScript 才能作答，請於瀏覽器啟用。</div></noscript>
+  <noscript><div style="max-width:860px;margin:12px auto;padding:12px 16px;background:#dff3ee;border-radius:8px;font-size:.9rem">本站收錄國中基測與教育會考英語科（閱讀）90～115 年試題共 1620 題選擇題，依108課綱學習內容分三類（詞彙 Ba、句型文法 Bb、篇章閱讀 Bc，含克漏字），每題附心測中心官方通過率與詳解（基測年份無官方通過率）。本站需開啟 JavaScript 才能作答，請於瀏覽器啟用。</div></noscript>
   <div class="introbox no-print" id="introBox">
-    <b>這是什麼？</b>收錄國中基測（90～102年）與教育會考（103～115年）英語科（閱讀）歷屆試題（考古題）共 1530 題，可依詞彙／句型文法／篇章閱讀（含克漏字）分類挑題，當場作答立刻看到對錯，每題附通過率（會考為官方公布，基測年份無官方通過率）與詳解。<br>
+    <b>這是什麼？</b>收錄國中基測（90～102年）與教育會考（103～115年）英語科（閱讀）歷屆試題（考古題）共 1620 題，可依詞彙／句型文法／篇章閱讀（含克漏字）分類挑題，當場作答立刻看到對錯，每題附通過率（會考為官方公布，基測年份無官方通過率）與詳解。<br>
     <b>不需登入，不會上傳任何個人資料</b>——錯題本、學習歷程都只存在你這台裝置的瀏覽器裡，換一台電腦或清除瀏覽器資料就會歸零。
   </div>
   <div class="quickstart no-print">
@@ -244,7 +259,7 @@
     <div class="toolrow" id="catToolrow" style="margin-bottom:6px"><span style="font-size:.85rem; color:var(--muted)">勾選想練的分類，或直接調整下方條件</span><span class="gtoggle" id="allToggle">全選／清除</span></div>
     <div id="catChips" class="chips"></div>
     <div class="row" style="border-top:1px dashed var(--line); padding-top:12px">
-      <label>題數：<input type="number" id="numInput" min="1" value="1530" style="width:70px"></label>
+      <label>題數：<input type="number" id="numInput" min="1" value="1620" style="width:70px"></label>
       <label><input type="checkbox" id="shuffleChk" checked> 隨機出題</label>
       <label>年份／場次：<select id="bankSel"><option value="">（整回模考需先選）</option></select></label>
       <label>難度：<select id="diffSel"><option value="all">不限</option><option value="easy">較簡單（通過率≥70%）</option><option value="mid">中等（40–70%）</option><option value="hard">較難（&lt;40%）</option></select></label>
@@ -331,6 +346,7 @@
 <script src="data/q93-1.js"></script>
 <script src="data/q93-2.js"></script>
 <script src="data/q94-1.js"></script>
+<script src="data/q94-2.js"></script>
 <script src="data/q95-1.js"></script>
 <script src="data/q95-2.js"></script>
 <script src="data/q96-1.js"></script>
@@ -340,6 +356,7 @@
 <script src="data/q98-1.js"></script>
 <script src="data/q98-2.js"></script>
 <script src="data/q99-1.js"></script>
+<script src="data/q99-2.js"></script>
 <script src="data/q100-1.js"></script>
 <script src="data/q100-2.js"></script>
 <script src="data/q101.js"></script>
@@ -357,6 +374,7 @@
 <script src="data/q113.js"></script>
 <script src="data/q114.js"></script>
 <script src="data/q115.js"></script>
+<script src="data/answer-distributions.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", ()=>{
 function safeSet(k, v){ try{ localStorage["setItem"](k, v); }catch(e){} }
@@ -366,6 +384,28 @@ const CATS = { Ba:"詞彙 Ba", Bb:"句型文法 Bb", Bc:"篇章閱讀 Bc" };
 
 function correctKeys(q){ return String(q.answer).split(/[、,]/).map(s=>s.trim()); }
 function isCorrect(q, picked){ return correctKeys(q).includes(picked); }
+function optionDistributionRows(q, group="all"){
+  const stats = group==="low" ? q.low?.opt : q.opt;
+  if(!stats) return "";
+  const correct = correctKeys(q);
+  const wrong = ["A","B","C","D"].filter(k=>!correct.includes(k));
+  const lure = wrong.slice().sort((a,b)=>(stats[b]||0)-(stats[a]||0))[0];
+  return ["A","B","C","D"].map(k=>{
+    const pct = Number(stats[k]);
+    const isCorrectOption = correct.includes(k);
+    const label = isCorrectOption ? " ✓正解" : (k===lure && pct>=10 ? " ← 最多人選錯" : "");
+    return `<div class="optchart-row"><span class="optchart-name">(${k})${label}</span><span class="optchart-bar"><i class="optchart-fill" style="width:${Math.max(0,Math.min(100,pct))}%;${isCorrectOption?"background:var(--ok)":""}"></i></span><span class="optchart-num">${pct.toFixed(1)}%</span></div>`;
+  }).join("");
+}
+function optionDistributionHtml(q){
+  if(!q.opt) return "";
+  const toggle = q.low?.opt ? `<div class="opt-group-toggle" role="group" aria-label="切換作答分布群組"><button type="button" class="active" data-opt-group="all" aria-pressed="true">全體</button><button type="button" data-opt-group="low" aria-pressed="false">待加強</button></div>` : "";
+  const source = q.optSource?.all?.label || "英語科試題分析";
+  return `<div class="opt-stats" data-qid="${q.id}"><b class="opt-chart-title">全體考生四選項作答分布</b>${toggle}<div class="opt-chart">${optionDistributionRows(q)}</div><div class="opt-source-note">來源：${source}；未作答與複選未列入，四項合計可能略低於 100%。</div></div>`;
+}
+function explanationHtml(q, heading){
+  return `<b>${heading}</b><br>${q.explain||""}${optionDistributionHtml(q)}`;
+}
 
 // 攤平題庫（單一年份，但保留跨年份擴充彈性）
 const ALL = [];
@@ -565,7 +605,7 @@ function updateFilterSummary(){
   const items = [
     `年份／場次 ${bankKey || "全部"}`,
     `分類 ${activeSubs.size}/${totalSubs} 類`,
-    `每次 ${Number($("numInput").value)||1530} 題`,
+    `每次 ${Number($("numInput").value)||1620} 題`,
     $("shuffleChk").checked ? "隨機出題" : "依序出題",
     d.value==="all" ? "難度不限" : d.options[d.selectedIndex].textContent
   ];
@@ -632,7 +672,7 @@ function renderQ(q, idx, opts={}){
           saveWrongBook(); updateWrongCount();
           const box = document.createElement("div");
           box.className = "explainBox";
-          box.innerHTML = `<b>${ok?"✓ 答對了！":"✗ 答錯了，正解是 "+keys.join("、")}</b><br>${q.explain||""}`;
+          box.innerHTML = explanationHtml(q, ok?"✓ 答對了！":"✗ 答錯了，正解是 "+keys.join("、"));
           div.appendChild(box);
           announce(ok ? "答對了" : `答錯了，正解是 ${keys.join("、")}`);
         }
@@ -668,10 +708,27 @@ function revealAnswers(){
     const ok = picked ? isCorrect(q, picked) : false;
     const box = document.createElement("div");
     box.className = "explainBox";
-    box.innerHTML = `<b>${picked ? (ok?"✓ 答對了！":"✗ 答錯了，正解是 "+keys.join("、")) : "未作答，正解是 "+keys.join("、")}</b><br>${q.explain||""}`;
+    box.innerHTML = explanationHtml(q, picked ? (ok?"✓ 答對了！":"✗ 答錯了，正解是 "+keys.join("、")) : "未作答，正解是 "+keys.join("、"));
     div.appendChild(box);
   });
 }
+document.addEventListener("click", e=>{
+  const button = e.target.closest("[data-opt-group]");
+  if(!button) return;
+  const box = button.closest(".opt-stats");
+  const q = ALL.find(item=>item.id===box?.dataset.qid);
+  const group = button.dataset.optGroup;
+  if(!box || !q || (group==="low" && !q.low?.opt)) return;
+  box.querySelector(".opt-chart").innerHTML = optionDistributionRows(q, group);
+  box.querySelector(".opt-chart-title").textContent = `${group==="low"?"待加強組":"全體考生"}四選項作答分布`;
+  const label = q.optSource?.[group]?.label || q.optSource?.all?.label || "英語科試題分析";
+  box.querySelector(".opt-source-note").textContent = `來源：${label}；未作答與複選未列入，四項合計可能略低於 100%。`;
+  box.querySelectorAll("[data-opt-group]").forEach(item=>{
+    const active = item.dataset.optGroup===group;
+    item.classList.toggle("active", active);
+    item.setAttribute("aria-pressed", String(active));
+  });
+});
 function stopTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
 function startTimer(seconds){
   stopTimer();
@@ -1095,7 +1152,8 @@ if(urlParams.get("q")){
 });
 </script>
 <!-- 訪客計數：可見數字 visitor-badge、幕後分析 GoatCounter -->
-<img src="https://visitor-badge.laobi.icu/badge?page_id=hk6429.cap-english" alt="訪客人數" loading="lazy" referrerpolicy="no-referrer" style="position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:2147483000;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:none;">
+<a id="gc-visitors" href="https://hk6429.goatcounter.com" target="_blank" rel="noopener" title="訪客人數（GoatCounter）" style="position:fixed;right:14px;bottom:14px;z-index:2147483000;font:600 12px/1 -apple-system,'PingFang TC','Noto Sans TC',system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.58);padding:7px 12px;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.35);text-decoration:none;display:none">👁 <span id="gc-visitors-n">–</span></a>
+<script>(function(){fetch('https://hk6429.goatcounter.com/counter/'+encodeURIComponent(location.host+'/')+'.json').then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d)return;var a=document.getElementById('gc-visitors');document.getElementById('gc-visitors-n').textContent=d.count_unique;a.style.display='';}).catch(function(){});})();</script>
 <script src="js/vendor/gc-config.js"></script>
 <script data-goatcounter="https://hk6429.goatcounter.com/count" async src="js/vendor/count.js"></script>
 </body>

@@ -27,3 +27,9 @@ test("解析區可切換全體與待加強組，並顯示最大誘答差", () =>
   assert.match(html, /待加強組有 \$\{lure\.low\.toFixed\(1\)\}%/);
   assert.match(html, /這題的關鍵迷思在/);
 });
+
+test("題庫資料帶版本參數，避免部署後仍讀到舊解析快取", () => {
+  assert.match(html, /data\/q90-1\.js\?v=40029c2/);
+  assert.match(html, /data\/q114\.js\?v=40029c2/);
+  assert.match(html, /data\/answer-distributions\.js\?v=40029c2/);
+});

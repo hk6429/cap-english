@@ -12,6 +12,17 @@ test("首頁提供計時、難度排序與排行榜操作", () => {
   for (const id of ["timedChk", "diffSortChk", "rankBtn", "rankPanel"]) {
     assert.match(html, new RegExp(`id="${id}"`), `缺少 #${id}`);
   }
+  assert.match(html, /id="timingHint"/);
+  assert.match(html, /CAP_ENGLISH_TIMING\.totalSeconds\(current, ALL\)/);
+});
+
+test("首頁與排行榜均提供鑑別度篩選及排序", () => {
+  for (const id of ["discSel", "rankDiscSel"]) {
+    assert.match(html, new RegExp(`id="${id}"`), `缺少 #${id}`);
+  }
+  assert.match(html, /value="disc10"/);
+  assert.match(html, /value="discLow10"/);
+  assert.match(html, /鑑別度 \$\{q\.disc\.toFixed\(2\)\}/);
 });
 
 test("難度排行榜可依通過率與待加強組誘答差選題", () => {

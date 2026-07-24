@@ -64,6 +64,17 @@
   .catdot{width:10px; height:10px; border-radius:3px; display:inline-block; flex-shrink:0}
   .expandToggle{margin-left:auto}
   .row{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:12px; font-size:.92rem}
+  .year-picker-wrap{display:flex; align-items:center; gap:6px}
+  .year-picker{position:relative}
+  .year-picker summary{font:inherit; min-width:190px; padding:6px 30px 6px 10px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); cursor:pointer; list-style:none; position:relative}
+  .year-picker summary::-webkit-details-marker{display:none}
+  .year-picker summary::after{content:"▾"; position:absolute; right:10px}
+  .year-picker[open] summary::after{content:"▴"}
+  .year-menu{position:absolute; z-index:40; top:calc(100% + 6px); left:0; width:min(360px,calc(100vw - 36px)); padding:10px; background:var(--card); border:1px solid var(--line); border-radius:10px; box-shadow:0 8px 24px rgba(11,43,40,.18)}
+  .year-actions{display:flex; flex-wrap:wrap; gap:6px; padding-bottom:8px; border-bottom:1px dashed var(--line)}
+  .year-actions button{font:inherit; font-size:.8rem; padding:5px 9px; border:1px solid var(--line); border-radius:999px; background:var(--card); color:var(--accent2); cursor:pointer}
+  .year-options{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 10px; max-height:260px; overflow:auto; padding-top:8px}
+  .year-option{display:flex; align-items:flex-start; gap:6px; padding:4px; font-size:.84rem; cursor:pointer}
   .morerow{display:none; margin-top:8px}
   select,input[type=number]{font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:#eafaf7; font-size:16px}
   .btn{font:inherit; border:0; border-radius:4px 12px 4px 12px; padding:11px 22px; cursor:pointer; font-size:1rem;
@@ -127,6 +138,19 @@
   .opt-group-toggle button.active{background:var(--accent); border-color:var(--accent); color:#fff}
   .opt-source-note,.opt-lure-note{font-size:.76rem; color:var(--muted); margin-top:6px}
   .opt-lure-note{color:#8a4b12}
+  .report-wrap{margin-top:12px; padding-top:10px; border-top:1px dashed var(--line)}
+  .report-toggle{border:0; background:transparent; color:var(--accent2); text-decoration:underline; text-underline-offset:3px; cursor:pointer; font:inherit; padding:4px 0}
+  .report-form{display:none; margin-top:8px; padding:10px; background:var(--card); border:1px solid var(--line); border-radius:8px; color:var(--ink)}
+  .report-form.open{display:block}
+  .report-form label{display:block; margin-bottom:8px; font-weight:600}
+  .report-form select,.report-form textarea{display:block; width:100%; margin-top:4px; font:inherit; color:var(--ink); background:#eafaf7; border:1px solid var(--line); border-radius:8px; padding:8px}
+  .report-form textarea{min-height:88px; resize:vertical}
+  .report-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .report-submit{border:1px solid var(--accent2); background:var(--accent); color:#fff; border-radius:8px; padding:8px 14px; font:inherit; cursor:pointer}
+  .report-status{font-size:.8rem; color:var(--muted)}
+  .report-status.ok{color:var(--ok)}
+  .report-status.bad{color:var(--bad)}
+  .report-hp{position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden}
   .passtag{display:inline-flex; align-items:center; gap:5px; white-space:nowrap}
   .passbar{display:inline-block; width:44px; height:8px; background:#cfe9e2; border-radius:4px; overflow:hidden}
   .passbar i{display:block; height:100%; border-radius:4px}
@@ -213,7 +237,7 @@
     body{background-image:none}
     a{text-decoration-color:rgba(79,214,196,.5)}
     .introbox,.scorebar,.explainBox,.result{background:#16302c}
-    .chip,select,input[type=number],.opt{background:#173330; color:var(--ink); border-color:var(--line)}
+    .chip,select,input[type=number],.opt,.report-form select,.report-form textarea{background:#173330; color:var(--ink); border-color:var(--line)}
     .chip.on{background:var(--seal); color:#08201d}
     .chip.on .cnt{color:#08201d}
     .passage{background:#16302c}
@@ -263,7 +287,18 @@
     <div class="row" style="border-top:1px dashed var(--line); padding-top:12px">
       <label>題數：<input type="number" id="numInput" min="1" value="10" style="width:70px"></label>
       <label><input type="checkbox" id="shuffleChk" checked> 隨機出題</label>
-      <label>年份／場次：<select id="bankSel"><option value="">（整回模考需先選）</option></select></label>
+      <div class="year-picker-wrap"><span>年份／場次：</span><details class="year-picker" id="bankPicker">
+        <summary id="bankSummary">載入年份／場次…</summary>
+        <div class="year-menu">
+          <div class="year-actions">
+            <button type="button" data-bank-preset="all">全部</button>
+            <button type="button" data-bank-preset="cap">會考 103～115</button>
+            <button type="button" data-bank-preset="bctest">基測 90～102</button>
+            <button type="button" data-bank-preset="none">清除</button>
+          </div>
+          <div class="year-options" id="bankOptions"></div>
+        </div>
+      </details></div>
       <label><input type="checkbox" id="timedChk"> 計時模式（<span id="timingHint">依各年度實際題數換算，約 80～90 秒／題</span>）</label>
       <label>難度：<select id="diffSel"><option value="all">不限</option><option value="easy">較簡單（通過率≥70%）</option><option value="mid">中等（40–70%）</option><option value="hard">較難（&lt;40%）</option></select></label>
       <label>鑑別度：<select id="discSel"><option value="all">不限</option><option value="high">高（≥0.5）</option><option value="mid">中（0.3–0.5）</option><option value="low">低（&lt;0.3）</option></select></label>
@@ -279,7 +314,8 @@
       <span class="gtoggle" id="moreToggle">更多功能 ▾</span>
     </div>
     <div class="row morerow" id="moreRow">
-      <button class="btn btn-sub" id="mockBtn">整回模考（需先選年份／場次）</button>
+      <label>整回模考：<select id="mockBankSel"><option value="">選擇單一年份／場次</option></select></label>
+      <button class="btn btn-sub" id="mockBtn">開始整回模考</button>
       <button class="btn btn-sub" id="paperBtn">出卷模式（老師）</button>
       <button class="btn btn-sub" id="rankBtn">難度排行榜</button>
       <button class="btn btn-sub" id="wrongBtn">錯題本（<span id="wrongCount">0</span>）</button>
@@ -407,6 +443,8 @@
 <script src="data/discriminations.js?v=disc-20260724"></script>
 <script src="data/answer-distributions.js?v=40029c2"></script>
 <script src="data/timing.js?v=timing-20260724"></script>
+<script src="js/year-filter.js?v=multi-year-20260724"></script>
+<script src="js/report-client.js?v=telegram-report-20260724"></script>
 <script>
 document.addEventListener("DOMContentLoaded", ()=>{
 function safeSet(k, v){ try{ localStorage["setItem"](k, v); }catch(e){} }
@@ -446,8 +484,31 @@ function optionDistributionHtml(q){
   const lureNote = lure && lure.gap>0 ? `<div class="opt-lure-note">⚠ 待加強組有 ${lure.low.toFixed(1)}% 選（${lure.option}），比全體高 ${lure.gap.toFixed(1)} 個百分點 → 這題的關鍵迷思在（${lure.option}）</div>` : "";
   return `<div class="opt-stats" data-qid="${q.id}"><b class="opt-chart-title">全體考生四選項作答分布</b>${toggle}<div class="opt-chart">${optionDistributionRows(q)}</div><div class="opt-source-note" data-opt-source>來源：${allSource}；未作答與複選未列入，四項合計可能略低於 100%。</div>${lureNote}</div>`;
 }
+function reportFormHtml(q){
+  return `<div class="report-wrap"><button type="button" class="report-toggle" data-report-qid="${q.id}" aria-expanded="false">🚩 這題有問題？回報給老師</button>
+    <form class="report-form" data-report-form="${q.id}">
+      <label>問題類型
+        <select name="issueType" required>
+          <option value="解析不清楚">解析不清楚</option>
+          <option value="答案或選項有疑問">答案或選項有疑問</option>
+          <option value="圖片或表格有缺漏">圖片或表格有缺漏</option>
+          <option value="題目文字或劃線有誤">題目文字或劃線有誤</option>
+          <option value="其他">其他</option>
+        </select>
+      </label>
+      <label>請告訴老師哪裡需要修正（選填）
+        <textarea name="note" maxlength="800" placeholder="例如：不懂 B 選項為什麼不能選。"></textarea>
+      </label>
+      <label class="report-hp" aria-hidden="true">網站<input name="website" tabindex="-1" autocomplete="off"></label>
+      <div class="report-actions">
+        <button type="submit" class="report-submit">送出回報</button>
+        <span class="report-status" role="status" aria-live="polite"></span>
+      </div>
+    </form>
+  </div>`;
+}
 function explanationHtml(q, heading){
-  return `<b>${heading}</b><br>${q.explain||""}${optionDistributionHtml(q)}`;
+  return `<b>${heading}</b><br>${q.explain||""}${optionDistributionHtml(q)}${reportFormHtml(q)}`;
 }
 
 // 攤平題庫（單一年份，但保留跨年份擴充彈性）
@@ -466,6 +527,10 @@ const $ = id => document.getElementById(id);
 function sittingLabelOf(bank){ return bank.sitting==="first" ? "第一次" : bank.sitting==="second" ? "第二次" : ""; }
 function bankKey(bank){ return `${bank.era}${bank.year}${bank.sitting==="first"?"-1":bank.sitting==="second"?"-2":""}`; }
 const BANKS = (window.BANK||[]).slice().sort((a,b)=> b.year-a.year || (b.sitting||"").localeCompare(a.sitting||""));
+const BANK_LABELS = new Map(BANKS.map(bank=>[
+  bankKey(bank),
+  `${bank.year} 年${bank.era}${sittingLabelOf(bank)?"　"+sittingLabelOf(bank):""}`
+]));
 function populateBankSel(sel){
   BANKS.forEach(bank=>{
     const o = document.createElement("option");
@@ -474,19 +539,36 @@ function populateBankSel(sel){
     sel.appendChild(o);
   });
 }
-populateBankSel($("bankSel"));
+populateBankSel($("mockBankSel"));
+BANKS.forEach(bank=>{
+  const label = document.createElement("label");
+  label.className = "year-option";
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.className = "bankChk";
+  checkbox.value = bankKey(bank);
+  checkbox.checked = true;
+  label.append(checkbox, document.createTextNode(BANK_LABELS.get(bankKey(bank))));
+  $("bankOptions").appendChild(label);
+});
+function selectedBankKeys(){
+  return window.CAP_YEAR_FILTER.selectedValues(document.querySelectorAll(".bankChk"));
+}
+function bankSelectionSummary(){
+  return window.CAP_YEAR_FILTER.summary(selectedBankKeys(), BANKS.length, BANK_LABELS);
+}
 function qsOfBankKey(key){
   const bank = BANKS.find(b=>bankKey(b)===key);
   if(!bank) return [];
   return ALL.filter(q=>q.era===bank.era && q.year===bank.year && q.sitting===bank.sitting).sort((a,b)=>a.no-b.no);
 }
 function updateTimingHint(){
-  const key = $("bankSel").value;
-  const questions = qsOfBankKey(key);
-  if(!questions.length){
+  const selected = selectedBankKeys();
+  if(selected.size!==1){
     $("timingHint").textContent = "依各年度實際題數換算，約 80～90 秒／題";
     return;
   }
+  const questions = qsOfBankKey([...selected][0]);
   const seconds = window.CAP_ENGLISH_TIMING.secondsPerQuestion(questions[0], ALL);
   const prefix = questions[0].era==="會考" ? "會考閱讀" : "以會考閱讀節奏";
   $("timingHint").textContent = `${prefix} 60 分鐘÷${questions.length} 題 ≈ ${seconds.toFixed(1)} 秒／題`;
@@ -624,12 +706,12 @@ function inDiscRange(q, value=$("discSel").value){
   return true;
 }
 function pool(){
-  const selectedBank = $("bankSel").value;
+  const selectedBanks = selectedBankKeys();
   return ALL.filter(q => {
     const wl = SUBCATS[q.cat]||[];
     const knownTags = (q.tags||[]).filter(t=>wl.includes(t));
     const catOK = knownTags.length ? knownTags.some(t=>activeSubs.has(q.cat+"::"+t)) : catActive(q.cat);
-    const bankOK = !selectedBank || bankKey(q)===selectedBank;
+    const bankOK = window.CAP_YEAR_FILTER.matches(bankKey(q), selectedBanks);
     return catOK && bankOK && inDiffRange(q) && inDiscRange(q);
   });
 }
@@ -637,8 +719,25 @@ function updateCount(){ $("countInfo").textContent = `符合條件共 ${pool().l
 $("diffCoverage").textContent = ALL.filter(q=>q.pass!=null).length;
 $("diffSel").onchange = ()=>{ updateCount(); updateFilterSummary(); };
 $("discSel").onchange = ()=>{ updateCount(); updateFilterSummary(); };
-$("bankSel").onchange = ()=>{ updateCount(); updateFilterSummary(); updateTimingHint(); };
+function handleBankSelectionChange(){
+  $("bankSummary").textContent = bankSelectionSummary();
+  updateCount();
+  updateFilterSummary();
+  updateTimingHint();
+}
+document.querySelectorAll(".bankChk").forEach(checkbox=>{ checkbox.onchange = handleBankSelectionChange; });
+document.querySelectorAll("[data-bank-preset]").forEach(button=>{
+  button.onclick = ()=>{
+    const preset = button.dataset.bankPreset;
+    document.querySelectorAll(".bankChk").forEach((checkbox,index)=>{
+      const era = BANKS[index].era;
+      checkbox.checked = preset==="all" || (preset==="cap" && era==="會考") || (preset==="bctest" && era==="基測");
+    });
+    handleBankSelectionChange();
+  };
+});
 updateCount();
+handleBankSelectionChange();
 updateTimingHint();
 
 // ---- 進階篩選收合（預設收起，降低首頁資訊量） ----
@@ -667,11 +766,10 @@ function updateFilterSummary(){
   const expanded = $("filterBody").style.display !== "none";
   if(expanded){ el.style.display = "none"; return; }
   el.style.display = "block";
-  const bankKey = $("bankSel").value;
   const d = $("diffSel");
   const disc = $("discSel");
   const items = [
-    `年份／場次 ${bankKey || "全部"}`,
+    `年份／場次 ${bankSelectionSummary()}`,
     `分類 ${activeSubs.size}/${totalSubs} 類`,
     `每次 ${Number($("numInput").value)||10} 題`,
     $("diffSortChk").checked ? "由易到難" : ($("shuffleChk").checked ? "隨機出題" : "依序出題"),
@@ -783,6 +881,14 @@ function revealAnswers(){
   });
 }
 document.addEventListener("click", e=>{
+  const reportButton = e.target.closest(".report-toggle");
+  if(reportButton){
+    const form = reportButton.closest(".report-wrap")?.querySelector(".report-form");
+    const open = form?.classList.toggle("open");
+    reportButton.setAttribute("aria-expanded", String(Boolean(open)));
+    if(open) form.querySelector("select")?.focus();
+    return;
+  }
   const button = e.target.closest("[data-opt-group]");
   if(!button) return;
   const box = button.closest(".opt-stats");
@@ -798,6 +904,36 @@ document.addEventListener("click", e=>{
     item.classList.toggle("active", active);
     item.setAttribute("aria-pressed", String(active));
   });
+});
+document.addEventListener("submit", async e=>{
+  const form = e.target.closest(".report-form");
+  if(!form) return;
+  e.preventDefault();
+  const qid = form.dataset.reportForm;
+  const q = ALL.find(item=>item.id===qid);
+  const status = form.querySelector(".report-status");
+  const submit = form.querySelector(".report-submit");
+  if(!q || !status || !submit) return;
+  submit.disabled = true;
+  status.className = "report-status";
+  status.textContent = "正在送出…";
+  const data = new FormData(form);
+  try{
+    await CAP_ENGLISH_REPORT.submit({
+      questionId:q.id, year:q.year, sitting:sittingLabelOf(q), era:q.era, no:q.no,
+      category:CATS[q.cat]||q.cat, stem:plainText(q.stem), answer:correctKeys(q).join("、"),
+      picked:answered[q.id]||"", issueType:data.get("issueType"), note:data.get("note"),
+      website:data.get("website"), url:location.href
+    }, location);
+    status.className = "report-status ok";
+    status.textContent = "已送給老師，謝謝你協助校對！";
+    form.querySelector("textarea").value = "";
+  }catch(error){
+    status.className = "report-status bad";
+    status.textContent = error.message || "回報暫時無法送出";
+  }finally{
+    submit.disabled = false;
+  }
 });
 function stopTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
 function startTimer(seconds){
@@ -933,8 +1069,8 @@ $("reviewBtn").onclick = ()=>{
 
 // ---- 整回模考模式（依真實年份／場次原題序作答，比照官方時間計時、交卷才揭曉答案） ----
 function doMock(){
-  const key = $("bankSel").value;
-  if(!key) return alert("請先在上方選一個特定年份／場次，才能開始整回模考");
+  const key = $("mockBankSel").value;
+  if(!key) return alert("請先在「整回模考」旁選一個特定年份／場次");
   const qs = qsOfBankKey(key);
   if(!qs.length) return alert("找不到這個年份／場次的題目");
   mode = "mock";
